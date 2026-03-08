@@ -1,0 +1,5 @@
+﻿src/components/ui/sidebar.tsx(73,27): error TS2352: Conversion of type 'Omit<HTMLMotionProps<"div">, "ref"> & RefAttributes<HTMLDivElement>' to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'Omit<HTMLMotionProps<"div">, "ref"> & RefAttributes<HTMLDivElement>' is not comparable to type 'HTMLAttributes<HTMLDivElement>'.
+    Types of property 'onDrag' are incompatible.
+      Type '(event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => void' is not comparable to type 'DragEventHandler<HTMLDivElement>'.
+        Target signature provides too few arguments. Expected 2 or more, but got 1.

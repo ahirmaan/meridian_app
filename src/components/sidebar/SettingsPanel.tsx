@@ -1,0 +1,311 @@
+"use client";
+
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Lock, Shield, Check, ChevronDown } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { AVAILABLE_MODELS } from "../../lib/models";
+import { getModelLogoSrc } from "../../lib/modelLogos";
+
+interface SettingsPanelProps {
+  onClose: () => void;
+  defaultModel: string;
+  setDefaultModel: (id: string) => void;
+}
+
+export function SettingsPanel({
+  onClose,
+  defaultModel,
+  setDefaultModel,
+}: SettingsPanelProps) {
+  const [changePasscodeOpen, setChangePasscodeOpen] = useState(false);
+  const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const passcodeExists = !!localStorage.getItem("meridian_passcode");
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setModelDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[150]"
+        onClick={onClose}
+      />
+
+      <motion.div
+        initial={{ x: "100%" }}
+        animate={{ x: 0 }}
+        exit={{ x: "100%" }}
+        transition={{ duration: 0.25 }}
+        className="fixed right-0 top-0 h-full w-96 bg-neutral-950 border-l border-neutral-800 z-[160] flex flex-col p-8 overflow-y-auto"
+      >
+        <div className="flex items-center justify-between mb-10">
+          <h2 className="text-white font-semibold text-lg tracking-tight">
+            Settings
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-neutral-400 hover:text-white transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* DEFAULT MODEL */}
+        <div className="mb-12">
+          <h3 className="text-xs uppercase tracking-widest text-neutral-500 mb-2">
+            Default Model
+          </h3>
+          <p className="text-xs text-neutral-600 mb-4">
+            Used when no specific model is selected for a chat.
+          </p>
+
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setModelDropdownOpen((p) => !p)}
+              className="w-full flex items-center justify-between bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 text-sm text-white hover:border-neutral-700 focus:outline-none focus:ring-1 focus:ring-neutral-600 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-3 text-left">
+                {(() => {
+                  const logo = getModelLogoSrc(AVAILABLE_MODELS.find((m) => m.id === defaultModel)?.id || "");
+                  return logo ? <img src={logo} alt="" className="w-5 h-5 object-contain flex-shrink-0" /> : null;
+                })()}
+                <div className="flex flex-col">
+                  <span className="text-white text-sm">
+                    {AVAILABLE_MODELS.find((m) => m.id === defaultModel)?.label || "Select model"}
+                  </span>
+                  <span className="text-[11px] text-neutral-500">
+                    {AVAILABLE_MODELS.find((m) => m.id === defaultModel)?.provider}
+                  </span>
+                </div>
+              </div>
+              <ChevronDown
+                className={`w-4 h-4 text-neutral-500 transition-transform duration-200 ${modelDropdownOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            <AnimatePresence>
+              {modelDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute left-0 right-0 top-full mt-2 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl overflow-hidden z-50"
+                >
+                  {AVAILABLE_MODELS.map((model) => (
+                    <button
+                      key={model.id}
+                      onClick={() => {
+                        setDefaultModel(model.id);
+                        setModelDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${defaultModel === model.id
+                        ? "bg-neutral-800"
+                        : "hover:bg-neutral-800/60"
+                        }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        {(() => {
+                          const logo = getModelLogoSrc(model.id);
+                          return logo ? <img src={logo} alt="" className="w-5 h-5 object-contain flex-shrink-0" /> : null;
+                        })()}
+                        <div className="flex flex-col">
+                          <span className="text-sm text-white">{model.label}</span>
+                          <span className="text-[11px] text-neutral-500">{model.provider}</span>
+                        </div>
+                      </div>
+                      {defaultModel === model.id && (
+                        <Check className="w-4 h-4 text-white flex-shrink-0" />
+                      )}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* PRIVACY */}
+        <div>
+          <h3 className="text-xs uppercase tracking-widest text-neutral-500 mb-4">
+            Privacy
+          </h3>
+
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-neutral-300">
+                Locked Folder
+              </span>
+              <span className="text-xs text-neutral-500">
+                {passcodeExists ? "Configured" : "Not set"}
+              </span>
+            </div>
+
+            <button
+              onClick={() => setChangePasscodeOpen(true)}
+              className="w-full flex items-center gap-2 px-4 py-3 rounded-xl border border-neutral-800 text-sm text-neutral-300 hover:bg-neutral-900 transition-colors"
+            >
+              <Lock className="w-4 h-4" />
+              {passcodeExists ? "Change Passcode" : "Set Passcode"}
+            </button>
+          </div>
+        </div>
+      </motion.div>
+
+      <AnimatePresence>
+        {changePasscodeOpen && (
+          <ChangePasscodeModal
+            onClose={() => setChangePasscodeOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+/* ---------- PASSCODE MODAL ---------- */
+
+function ChangePasscodeModal({
+  onClose,
+}: {
+  onClose: () => void;
+}) {
+  const [current, setCurrent] = useState("");
+  const [newPass, setNewPass] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const passcodeExists = !!localStorage.getItem("meridian_passcode");
+
+  const handleSave = () => {
+    if (passcodeExists) {
+      const stored = localStorage.getItem("meridian_passcode");
+      if (current !== stored) {
+        setError("Current passcode is incorrect.");
+        return;
+      }
+    }
+
+    if (newPass.length !== 4 || !/^\d+$/.test(newPass)) {
+      setError("Passcode must be exactly 4 digits.");
+      return;
+    }
+
+    if (newPass !== confirm) {
+      setError("Passcodes do not match.");
+      return;
+    }
+
+    localStorage.setItem("meridian_passcode", newPass);
+    setSuccess(true);
+
+    setTimeout(() => {
+      onClose();
+    }, 1200);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[200] flex items-center justify-center"
+    >
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-md"
+        onClick={onClose}
+      />
+
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        className="relative z-10 bg-neutral-900 border border-neutral-800 rounded-2xl p-8 w-full max-w-[360px] shadow-2xl"
+      >
+        {success ? (
+          <div className="flex flex-col items-center text-center py-6">
+            <Shield className="w-10 h-10 text-green-500 mb-3" />
+            <h2 className="text-white font-semibold">
+              Passcode Updated
+            </h2>
+          </div>
+        ) : (
+          <>
+            <h2 className="text-white font-semibold mb-6">
+              {passcodeExists ? "Change Passcode" : "Set Passcode"}
+            </h2>
+
+            <div className="flex flex-col gap-4">
+              {passcodeExists && (
+                <input
+                  type="password"
+                  maxLength={4}
+                  value={current}
+                  onChange={(e) =>
+                    setCurrent(e.target.value.replace(/\D/g, ""))
+                  }
+                  placeholder="Current Passcode"
+                  className="bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-center text-white"
+                />
+              )}
+
+              <input
+                type="password"
+                maxLength={4}
+                value={newPass}
+                onChange={(e) =>
+                  setNewPass(e.target.value.replace(/\D/g, ""))
+                }
+                placeholder="New Passcode"
+                className="bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-center text-white"
+              />
+
+              <input
+                type="password"
+                maxLength={4}
+                value={confirm}
+                onChange={(e) =>
+                  setConfirm(e.target.value.replace(/\D/g, ""))
+                }
+                placeholder="Confirm Passcode"
+                className="bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-center text-white"
+              />
+
+              {error && (
+                <p className="text-red-500 text-xs">{error}</p>
+              )}
+            </div>
+
+            <div className="flex gap-3 mt-8">
+              <button
+                onClick={onClose}
+                className="flex-1 py-3 rounded-xl border border-neutral-800 text-neutral-400 hover:bg-neutral-800"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleSave}
+                className="flex-1 py-3 rounded-xl bg-white text-black font-semibold hover:bg-neutral-200"
+              >
+                Save
+              </button>
+            </div>
+          </>
+        )}
+      </motion.div>
+    </motion.div>
+  );
+}

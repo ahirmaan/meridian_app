@@ -1,0 +1,49 @@
+[2026-03-07T18:30:12.112Z] Model: nvidia/nemotron-3-nano-30b-a3b:free
+[2026-03-07T18:30:32.618Z] Model: nvidia/nemotron-3-nano-30b-a3b:free
+[2026-03-07T18:30:47.312Z] Model: google/gemma-3-27b-it:free
+[2026-03-07T18:30:59.337Z] Model: stepfun/step-3.5-flash:free
+[2026-03-08T04:53:14.929Z] Model: google/gemma-3-27b-it:free
+[2026-03-08T04:53:35.679Z] Model: nvidia/nemotron-3-nano-30b-a3b:free
+[2026-03-08T04:53:38.444Z] RESP_DUMP for nvidia/nemotron-3-nano-30b-a3b:free: : OPENROUTER PROCESSING
+
+: OPENROUTER PROCESSING
+
+data: {"id":"gen-1772945618-itw8gBQdRUuRGxQppQrf","object":"chat.completion.chunk","created":1772945618,"model":"nvidia/nemotron-3-nano-30b-a3b:free","provider":"Nvidia","choices":[{"index":0,"delta":{"content":"","role":"assistant","reasoning":"User","reasoning_details":[{"type":"reasoning.text","text":"User","format":"unknown","index":0}]},"finish_reason":null,"native_finish_reason":null}]}
+
+data: {"id":"gen-1772945618-itw8gBQdRUuRGxQppQrf","ob...
+[2026-03-08T04:54:00.625Z] Model: stepfun/step-3.5-flash:free
+[2026-03-08T04:54:04.288Z] RESP_DUMP for stepfun/step-3.5-flash:free: : OPENROUTER PROCESSING
+
+: OPENROUTER PROCESSING
+
+: OPENROUTER PROCESSING
+
+data: {"id":"gen-1772945643-QYlhEG3SoVCzwrjpc2wP","object":"chat.completion.chunk","created":1772945643,"model":"stepfun/step-3.5-flash:free","provider":"StepFun","choices":[{"index":0,"delta":{"content":"","role":"assistant","reasoning":"H","reasoning_details":[{"type":"reasoning.text","text":"H","format":"unknown","index":0}]},"finish_reason":null,"native_finish_reason":null}]}
+
+data: {"id":"gen-1772945643-QYlhEG3SoVCzw...
+[2026-03-08T04:58:57.626Z] Model: nvidia/nemotron-3-nano-30b-a3b:free
+[2026-03-08T04:58:59.390Z] RESP_DUMP for nvidia/nemotron-3-nano-30b-a3b:free: : OPENROUTER PROCESSING
+
+data: {"id":"gen-1772945940-j51KCtIxRv6hjIJnUu3W","object":"chat.completion.chunk","created":1772945940,"model":"nvidia/nemotron-3-nano-30b-a3b:free","provider":"Nvidia","choices":[{"index":0,"delta":{"content":"","role":"assistant","reasoning":"The","reasoning_details":[{"type":"reasoning.text","text":"The","format":"unknown","index":0}]},"finish_reason":null,"native_finish_reason":null}]}
+
+data: {"id":"gen-1772945940-j51KCtIxRv6hjIJnUu3W","object":"chat.completion.chun...
+[2026-03-08T05:04:13.823Z] Model: stepfun/step-3.5-flash:free
+[2026-03-08T05:04:17.598Z] RESP_DUMP for stepfun/step-3.5-flash:free: : OPENROUTER PROCESSING
+
+: OPENROUTER PROCESSING
+
+: OPENROUTER PROCESSING
+
+: OPENROUTER PROCESSING
+
+data: {"id":"gen-1772946256-j5ueH3OxvZJCKts9wt6E","object":"chat.completion.chunk","created":1772946256,"model":"stepfun/step-3.5-flash:free","provider":"StepFun","choices":[{"index":0,"delta":{"content":"","role":"assistant","reasoning":"H","reasoning_details":[{"type":"reasoning.text","text":"H","format":"unknown","index":0}]},"finish_reason":null,"native_finish_reason":null}]}
+
+data: {"id":"gen...
+[2026-03-08T05:05:05.467Z] Model: nvidia/nemotron-3-nano-30b-a3b:free
+[2026-03-08T05:05:08.632Z] RESP_DUMP for nvidia/nemotron-3-nano-30b-a3b:free: : OPENROUTER PROCESSING
+
+: OPENROUTER PROCESSING
+
+data: {"id":"gen-1772946308-O965MykRfujiAwMsMdgv","object":"chat.completion.chunk","created":1772946308,"model":"nvidia/nemotron-3-nano-30b-a3b:free","provider":"Nvidia","choices":[{"index":0,"delta":{"content":"","role":"assistant","reasoning":"The","reasoning_details":[{"type":"reasoning.text","text":"The","format":"unknown","index":0}]},"finish_reason":null,"native_finish_reason":null}]}
+
+data: {"id":"gen-1772946308-O965MykRfujiAwMsMdgv","obje...
