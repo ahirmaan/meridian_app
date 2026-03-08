@@ -278,9 +278,22 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
+  // Only start the server if we're not running as a Vercel serverless function
+  if (process.env.VERCEL !== '1') {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  }
+
+  return app;
 }
 
-startServer();
+// Export the startServer function to be used by Vercel
+export default startServer;
+
+// If this file is run directly (not imported), start the server
+if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
+  startServer().catch(err => {
+    console.error("Failed to start server:", err);
+  });
+}
