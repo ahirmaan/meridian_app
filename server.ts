@@ -272,9 +272,11 @@ async function startServer() {
 
     app.use(vite.middlewares);
   } else {
-    app.use(express.static(path.join(__dirname, "dist")));
+    // In production (e.g. Vercel), use process.cwd() which is more reliable for serverless functions
+    const distPath = path.join(process.cwd(), "dist");
+    app.use(express.static(distPath));
     app.get("*", (req, res) => {
-      res.sendFile(path.join(__dirname, "dist", "index.html"));
+      res.sendFile(path.join(distPath, "index.html"));
     });
   }
 
