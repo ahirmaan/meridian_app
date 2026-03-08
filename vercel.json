@@ -1,13 +1,12 @@
 {
     "rewrites": [
         {
-            "source": "/(.*)",
+            "source": "/api/(.*)",
             "destination": "/api/index.ts"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
         }
-    ],
-    "functions": {
-        "api/index.ts": {
-            "includeFiles": "dist/**"
-        }
-    }
+    ]
 }
