@@ -1,19 +1,21 @@
-import { createApp } from '../src/server/app';
-
-let cachedApp: any = null;
-
 export default async function handler(req: any, res: any) {
+    console.log("DEBUG: Vercel handler execution started.");
     try {
-        if (!cachedApp) {
-            cachedApp = await createApp();
-        }
-        return cachedApp(req, res);
+        console.log("DEBUG: Dynamically importing createApp...");
+        const { createApp } = await import('../src/server/app');
+
+        console.log("DEBUG: Calling createApp()...");
+        const app = await createApp();
+
+        console.log("DEBUG: App created, executing request...");
+        return app(req, res);
     } catch (error: any) {
-        console.error("VERCEL HANDLER CRASH:", error);
-        res.status(500).json({
-            error: "Server initialization failed",
-            details: error.message,
-            stack: error.stack
+        console.error("CRITICAL VERCEL CRASH:", error);
+        return res.status(500).json({
+            error: "Vercel Boot Crash",
+            message: error.message,
+            stack: error.stack,
+            phase: "initialization"
         });
     }
 }
