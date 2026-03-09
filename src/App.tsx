@@ -6,6 +6,7 @@ import {
   Navigate,
   useNavigate,
 } from "react-router-dom";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
@@ -118,6 +119,7 @@ export default function App() {
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </div>
+      <SpeedInsights />
     </Router>
   );
 }
