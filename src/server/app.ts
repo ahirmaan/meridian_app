@@ -35,6 +35,19 @@ export async function createApp() {
         res.json({ status: "ok" });
     });
 
+    // ✅ Infrastructure Test
+    app.get("/api/test", (req, res) => {
+        res.json({
+            status: "ok",
+            message: "Express App is Running on Vercel",
+            env: {
+                has_supabase_url: !!process.env.SUPABASE_URL || !!process.env.VITE_SUPABASE_URL,
+                has_supabase_key: !!process.env.SUPABASE_SERVICE_ROLE_KEY || !!process.env.VITE_SUPABASE_ANON_KEY,
+                has_openrouter_key: !!process.env.OPENROUTER_API_KEY
+            }
+        });
+    });
+
     // ✅ OpenRouter Chat Endpoint (Streaming)
     app.post("/api/chat", async (req, res) => {
         try {
@@ -159,10 +172,13 @@ export async function createApp() {
             }
 
         } catch (error: any) {
-            console.error("CRITICAL DEBUG: Streaming error:", error);
+            console.error("CRITICAL DEBUG: Streaming error occurred!");
+            console.error("Error Message:", error.message);
+            console.error("Error Stack:", error.stack);
             res.status(500).json({
                 error: "Streaming failed",
                 details: error.message,
+                stack: error.stack
             });
         }
     });
