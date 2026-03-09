@@ -1,9 +1,5 @@
 import express from "express";
-import path from "path";
-import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
-
-dotenv.config();
 
 export async function createApp() {
     const app = express();
