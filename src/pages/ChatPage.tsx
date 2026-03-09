@@ -254,6 +254,7 @@ export default function ChatPage() {
     if (activeChatId === id) {
       setActiveChatId(null);
       setMessages([]);
+      setPinnedModel(null);
     }
     await dbDeleteChat(id);
   };
@@ -583,6 +584,7 @@ export default function ChatPage() {
         setViewingLockedFolder={(v) => {
           setActiveChatId(null);
           setMessages([]);
+          setPinnedModel(null);
           setViewingLockedFolder(v);
         }}
         activeChatId={activeChatId}
