@@ -1,7 +1,7 @@
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import express from "express";
-import { createApp } from "./src/server/app";
+import { createApp } from './api/app';
 
 async function startDevServer() {
   const app = await createApp();
