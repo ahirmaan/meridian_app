@@ -254,13 +254,14 @@ export async function createApp() {
         }
     });
 
-    // ✅ Global Error Handler
+    // ✅ Global Error Handler (Temporary: exposing details for debugging)
     app.use((err: any, req: any, res: any, next: any) => {
         console.error("GLOBAL SERVER ERROR:", err);
         res.status(500).json({
             error: "Internal Server Error",
             message: err.message,
-            stack: process.env.VERCEL === '1' ? undefined : err.stack
+            details: err.toString(),
+            stack: err.stack
         });
     });
 
