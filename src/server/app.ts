@@ -12,6 +12,19 @@ const supabase = createClient(supabaseUrl || "https://dummy.supabase.co", supaba
 export async function createApp() {
     const app = express();
 
+    // ✅ Validate Environment Variables at start
+    const requiredEnv = [
+        { key: "SUPABASE_URL", fallback: "VITE_SUPABASE_URL" },
+        { key: "SUPABASE_SERVICE_ROLE_KEY", fallback: "VITE_SUPABASE_ANON_KEY" },
+        { key: "OPENROUTER_API_KEY" }
+    ];
+
+    const missingEnv = requiredEnv.filter(env => !process.env[env.key] && (!env.fallback || !process.env[env.fallback]));
+
+    if (missingEnv.length > 0 && process.env.VERCEL === '1') {
+        console.error("CRITICAL: Missing environment variables on Vercel:", missingEnv.map(e => e.key).join(", "));
+    }
+
     // 🔥 IMPORTANT (Increased limit to 50mb for base64 file uploads)
     app.use(express.json({ limit: "50mb" }));
 
@@ -129,12 +142,18 @@ export async function createApp() {
             res.end();
 
             if (lastChunkTokens > 0) {
-                console.log("DEBUG: Logging usage tokens", lastChunkTokens);
-                await supabase.from("usage_logs").insert({
+                console.log("DEBUG: Attempting to log usage tokens:", lastChunkTokens);
+                const { error: logError } = await supabase.from("usage_logs").insert({
                     user_id: user.id,
                     model,
                     tokens_used: lastChunkTokens,
                 });
+
+                if (logError) {
+                    console.error("DEBUG: Supabase Logging Error:", logError);
+                } else {
+                    console.log("DEBUG: Successfully logged usage tokens.");
+                }
             }
 
         } catch (error: any) {
@@ -233,6 +252,16 @@ export async function createApp() {
         } catch (error: any) {
             res.status(500).json({ error: "Failed to fetch usage" });
         }
+    });
+
+    // ✅ Global Error Handler
+    app.use((err: any, req: any, res: any, next: any) => {
+        console.error("GLOBAL SERVER ERROR:", err);
+        res.status(500).json({
+            error: "Internal Server Error",
+            message: err.message,
+            stack: process.env.VERCEL === '1' ? undefined : err.stack
+        });
     });
 
     return app;
