@@ -25,6 +25,7 @@ export async function createApp() {
         try {
             const authHeader = req.headers.authorization;
             if (!authHeader) {
+                console.error("DEBUG: Missing Authorization header");
                 return res.status(401).json({ error: "Missing Authorization header" });
             }
 
@@ -32,13 +33,15 @@ export async function createApp() {
             const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
             if (authError || !user) {
-                return res.status(401).json({ error: "Invalid or expired token" });
+                console.error("DEBUG: Auth error or no user", authError);
+                return res.status(401).json({ error: "Invalid or expired token", details: authError?.message });
             }
 
             // Check daily token limit (50,000)
             const startOfDay = new Date();
             startOfDay.setHours(0, 0, 0, 0);
 
+            console.log("DEBUG: Fetching usage for user", user.id);
             const { data: usageData, error: usageError } = await supabase
                 .from("usage_logs")
                 .select("tokens_used")
@@ -46,17 +49,19 @@ export async function createApp() {
                 .gte("created_at", startOfDay.toISOString());
 
             if (usageError) {
-                console.error("Usage fetch error:", usageError);
-                return res.status(500).json({ error: "Failed to verify token quota" });
+                console.error("DEBUG: Usage fetch error:", usageError);
+                return res.status(500).json({ error: "Failed to verify token quota", details: usageError.message });
             }
 
             const totalUsedToday = usageData?.reduce((sum, row) => sum + (row.tokens_used || 0), 0) || 0;
 
             if (totalUsedToday >= 50000) {
+                console.warn("DEBUG: Token limit reached for", user.id);
                 return res.status(429).json({ error: "Daily token limit reached" });
             }
 
             const { model, messages } = req.body;
+            console.log("DEBUG: Calling OpenRouter for model", model);
 
             const payload: any = {
                 model,
@@ -81,8 +86,8 @@ export async function createApp() {
 
             if (!response.ok || !response.body) {
                 const errorText = await response.text();
-                console.error("OpenRouter error:", errorText);
-                return res.status(500).json({
+                console.error("DEBUG: OpenRouter error:", errorText, "Status:", response.status);
+                return res.status(response.status || 500).json({
                     error: "OpenRouter call failed",
                     details: errorText,
                     status: response.status
@@ -124,6 +129,7 @@ export async function createApp() {
             res.end();
 
             if (lastChunkTokens > 0) {
+                console.log("DEBUG: Logging usage tokens", lastChunkTokens);
                 await supabase.from("usage_logs").insert({
                     user_id: user.id,
                     model,
@@ -132,7 +138,7 @@ export async function createApp() {
             }
 
         } catch (error: any) {
-            console.error("CRITICAL Streaming error:", error);
+            console.error("CRITICAL DEBUG: Streaming error:", error);
             res.status(500).json({
                 error: "Streaming failed",
                 details: error.message,
