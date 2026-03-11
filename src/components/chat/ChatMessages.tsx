@@ -149,7 +149,9 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
                   </div>
                 )}
                 {msg.loading && !contentToRender ? (
-                  <MessageLoading />
+                  <div className="flex items-center">
+                    <MessageLoading />
+                  </div>
                 ) : (
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
@@ -249,11 +251,6 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
                   >
                     {contentToRender}
                   </ReactMarkdown>
-                )}
-                {msg.loading && contentToRender && (
-                  <div className="mt-4 inline-block">
-                    <MessageLoading />
-                  </div>
                 )}
               </div>
             );
