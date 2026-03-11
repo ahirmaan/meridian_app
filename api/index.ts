@@ -142,13 +142,13 @@ export async function createApp() {
                 const summary = await summarizeHistory(toSummarize, process.env.OPENROUTER_API_KEY || "");
                 const remaining = messages.slice(messages.length - 8);
                 messages = [
-                    { role: "system", content: `Conversation summary: ${summary}\n\nStrictly keep your response under 150 words to ensure you finish your thought. Be concise and direct.` },
+                    { role: "system", content: `Conversation summary: ${summary}\n\nStrictly keep your response under 250 words to ensure you can fully finish your thought. Be concise but complete.` },
                     ...remaining
                 ];
             } else {
                 // Ensure concise instruction is always present if not summarizing
                 if (messages[0]?.role !== 'system') {
-                    messages.unshift({ role: "system", content: "Strictly keep your response under 150 words to ensure you finish your thought. Be concise and direct." });
+                    messages.unshift({ role: "system", content: "Strictly keep your response under 250 words to ensure you can fully finish your thought. Be concise but complete." });
                 }
             }
 
@@ -200,7 +200,7 @@ export async function createApp() {
                 messages,
                 stream: true,
                 include_usage: true,
-                max_tokens: 300 // Optimization 2: Response Limit
+                max_tokens: 800 // High enough to finish thoughts, low enough to save costs
             };
 
             const response = await fetch(
