@@ -433,7 +433,7 @@ export default function ChatPage() {
               return `${model?.label || id}: ${role}`;
             });
 
-          let systemPrompt = `Your identity is ${mNameForPrompt}. You must strictly identify as this model and never adopt the identity of any other model mentioned in the chat history. `;
+          let systemPrompt = "Respond as a helpful AI assistant. ";
 
           if (currentRole) {
             systemPrompt += `You are a specialist with the role: ${currentRole}. Respond with expertise in this area. `;
