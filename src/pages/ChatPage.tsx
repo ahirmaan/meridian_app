@@ -158,7 +158,6 @@ export default function ChatPage() {
           type: c.type,
           default_model: c.default_model,
           multi_model: c.multi_model,
-          multi_model: c.multi_model,
           model_roles: typeof c.model_roles === 'string' ? JSON.parse(c.model_roles) : (c.model_roles || {})
         };
         console.log(`[ChatPage] Loaded chat ${c.id} with roles:`, c.model_roles);
@@ -600,6 +599,7 @@ export default function ChatPage() {
   };
 
   const handleUpdateModelRoles = async (roles: Record<string, string>) => {
+    alert("Saving roles to database. Checking console for logs...");
     console.log("[ChatPage] handleUpdateModelRoles called with:", roles);
     if (!activeChatId) {
       console.warn("[ChatPage] No activeChatId, saving to draft (localStorage).");
