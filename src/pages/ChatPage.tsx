@@ -24,6 +24,7 @@ import {
   loadMessages,
   saveMessage,
   updateChatTimestamp,
+  updateChatRoles,
 } from "../lib/chatService";
 
 let msgCounter = 0;
@@ -144,11 +145,11 @@ export default function ChatPage() {
           id: c.id,
           title: c.title,
           type: c.type,
-          description: c.description,
           default_model: c.default_model,
           multi_model: c.multi_model,
           model_roles: c.model_roles
         };
+        console.log(`[ChatPage] Loaded chat ${c.id} with roles:`, c.model_roles);
         if (c.is_locked) {
           locked.push(chat);
         } else {
@@ -570,15 +571,27 @@ export default function ChatPage() {
   };
 
   const handleUpdateModelRoles = async (roles: Record<string, string>) => {
-    setModelRoles(roles);
-    if (activeChatId) {
-      // Update local state in regularChats/lockedChats so it persists across re-selections
-      const updateList = (prev: Chat[]) => prev.map(c => c.id === activeChatId ? { ...c, model_roles: roles } : c);
-      setRegularChats(updateList);
-      setLockedChats(updateList);
+    console.log("[ChatPage] handleUpdateModelRoles called with:", roles);
+    if (!activeChatId) {
+      console.warn("[ChatPage] No activeChatId, setting state only.");
+      setModelRoles(roles);
+      return;
+    }
 
-      // Save to DB
-      await import("../lib/chatService").then(m => m.updateChatRoles(activeChatId, roles));
+    setModelRoles(roles);
+
+    // Update local state in regularChats/lockedChats so it persists across re-selections
+    const updateList = (prev: Chat[]) => prev.map(c => c.id === activeChatId ? { ...c, model_roles: roles } : c);
+    setRegularChats(updateList);
+    setLockedChats(updateList);
+
+    // Save to DB
+    console.log(`[ChatPage] Saving roles to DB for chat ${activeChatId}...`);
+    try {
+      await updateChatRoles(activeChatId, roles);
+      console.log("[ChatPage] updateChatRoles finished.");
+    } catch (err) {
+      console.error("[ChatPage] updateChatRoles failed:", err);
     }
   };
 

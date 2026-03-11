@@ -117,13 +117,22 @@ export async function updateChatTimestamp(chatId: string) {
 }
 
 export async function updateChatRoles(chatId: string, roles: Record<string, string>) {
-    if (!supabaseEnabled || !supabase) return;
-    const { error } = await supabase
+    console.log(`[chatService] updateChatRoles for ${chatId}:`, roles);
+    if (!supabaseEnabled || !supabase) {
+        console.warn("[chatService] Supabase not enabled or not found.");
+        return;
+    }
+    const { data, error } = await supabase
         .from("chats")
         .update({ model_roles: roles, updated_at: new Date().toISOString() })
-        .eq("id", chatId);
+        .eq("id", chatId)
+        .select();
 
-    if (error) console.error("updateChatRoles error:", error.message);
+    if (error) {
+        console.error("[chatService] updateChatRoles error:", error.message);
+        throw error;
+    }
+    console.log("[chatService] updateChatRoles success:", data);
 }
 
 // ── Messages ───────────────────────────────────────
