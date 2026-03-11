@@ -418,13 +418,9 @@ export default function ChatPage() {
         targetModelIds.map(async (targetId) => {
           console.log(`[ChatPage] DISPATCHING to model: ${targetId} (Base modelId was: ${modelId})`);
           const lMsg = loadingMessages.find(m => m.modelId === targetId)!;
-          let mPrefix = modelId === "everyone" ? lMsg.content : ""; // The "**Model:** " prefix
-
-          // Clone the base messages and insert model-specific prompts
-          const modelApiMessages = [...baseApiMessages];
-
           const targetModelConfig = AVAILABLE_MODELS.find((m) => m.id === targetId);
           const mNameForPrompt = targetModelConfig?.label || "AI Assistant";
+          let mPrefix = `**${mNameForPrompt}**\n\n`; // Always show model name highlighted
 
           const currentRole = modelRoles[targetId];
           const otherRoles = Object.entries(modelRoles)
@@ -505,10 +501,7 @@ export default function ChatPage() {
                 if (line.startsWith("data: ")) {
                   const jsonStr = line.replace("data: ", "").trim();
                   if (jsonStr === "[DONE]") {
-                    if ((fullText || fullReasoning) && currentChatId) {
-                      const finalContent = fullReasoning ? `<thought>${fullReasoning}</thought>${fullText}` : fullText;
-                      await saveMessage(currentChatId, "assistant", mPrefix + finalContent);
-                    }
+                    // No need to save here, the outer 'if (done)' handles the final save
                     break;
                   }
                   try {
