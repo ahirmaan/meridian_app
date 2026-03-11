@@ -1,11 +1,74 @@
+import "dotenv/config";
 import express from "express";
 import { createClient } from "@supabase/supabase-js";
+import crypto from "crypto";
+
+// --- HELPERS ---
+function estimateTokens(text: string): number {
+    return Math.ceil(text.length / 4);
+}
+
+function getPromptHash(prompt: string, context: any[]): string {
+    const data = JSON.stringify({ prompt, context });
+    return crypto.createHash('sha256').update(data).digest('hex');
+}
+
+async function summarizeHistory(messages: any[], apiKey: string): Promise<string> {
+    try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                model: "google/gemini-2.0-flash:free",
+                messages: [
+                    { role: "system", content: "Summarize the following conversation history concisely in 50-80 tokens. Focus on user intent, key facts, and previous conclusions." },
+                    { role: "user", content: JSON.stringify(messages) }
+                ],
+                max_tokens: 100
+            })
+        });
+        if (!response.ok) return "Summarization failed.";
+        const data = await response.json() as any;
+        return data.choices?.[0]?.message?.content || "Summarization failed.";
+    } catch (e) {
+        console.error("Summarization error:", e);
+        return "Summarization error.";
+    }
+}
+
+function getOptimalModel(prompt: string, requestedModel: string): string {
+    const lower = prompt.toLowerCase();
+    const isSimple = lower.length < 50 && (
+        lower.includes("hello") ||
+        lower.includes("hi ") ||
+        lower.includes("who are you") ||
+        lower.includes("what is") ||
+        lower.match(/^\d+ [\+\-\*\/] \d+$/)
+    );
+
+    if (isSimple) {
+        console.log("[Router] Routing simple prompt to cheap model.");
+        return "google/gemini-2.0-flash:free";
+    }
+    return requestedModel;
+}
+// --- END HELPERS ---
 
 export async function createApp() {
     const app = express();
 
     const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || "";
+
+    if (!supabaseUrl || !supabaseKey) {
+        console.error("CRITICAL: Supabase credentials missing during initialization!");
+    } else {
+        console.log("Supabase client initializing with URL:", supabaseUrl);
+    }
+
     const supabase = createClient(supabaseUrl || "https://dummy.supabase.co", supabaseKey || "dummy_key");
 
     // ✅ Validate Environment Variables at start
@@ -59,6 +122,54 @@ export async function createApp() {
                 return res.status(401).json({ error: "Invalid or expired token", details: authError?.message });
             }
 
+            let { model, messages } = req.body;
+
+            // --- OPTIMIZATION LAYER ---
+            console.log("[Optimizer] History length:", messages.length);
+
+            // 1. Cheap Model Routing
+            const lastMessage = messages[messages.length - 1]?.content || "";
+            model = getOptimalModel(lastMessage, model);
+
+            // 2. Budget Protection & Truncation
+            let totalTokens = messages.reduce((acc: number, m: any) => acc + estimateTokens(m.content || ""), 0);
+            console.log("[Optimizer] Estimated total prompt tokens:", totalTokens);
+
+            // 3. Conversation Summarization
+            if (messages.length > 15 || totalTokens > 2000) {
+                console.log("[Optimizer] Triggering auto-summarization...");
+                const toSummarize = messages.slice(0, messages.length - 8);
+                const summary = await summarizeHistory(toSummarize, process.env.OPENROUTER_API_KEY || "");
+                const remaining = messages.slice(messages.length - 8);
+                messages = [
+                    { role: "system", content: `Conversation summary: ${summary}\n\nRespond concisely unless the user explicitly asks for a detailed explanation.` },
+                    ...remaining
+                ];
+            } else {
+                // Ensure concise instruction is always present if not summarizing
+                if (messages[0]?.role !== 'system') {
+                    messages.unshift({ role: "system", content: "Respond concisely unless the user explicitly asks for a detailed explanation." });
+                }
+            }
+
+            // 4. Response Caching
+            const cacheKey = getPromptHash(lastMessage, messages);
+            const { data: cachedResponse } = await supabase
+                .from("prompt_cache")
+                .select("response")
+                .eq("id", cacheKey)
+                .single();
+
+            if (cachedResponse) {
+                console.log("[Optimizer] Cache HIT!");
+                res.setHeader("Content-Type", "text/event-stream");
+                res.write(`data: ${JSON.stringify({ choices: [{ delta: { content: cachedResponse.response } }] })}\n\n`);
+                res.write("data: [DONE]\n\n");
+                res.end();
+                return;
+            }
+            // --- END OPTIMIZATION LAYER ---
+
             // Check daily token limit (50,000)
             const startOfDay = new Date();
             startOfDay.setHours(0, 0, 0, 0);
@@ -82,7 +193,6 @@ export async function createApp() {
                 return res.status(429).json({ error: "Daily token limit reached" });
             }
 
-            const { model, messages } = req.body;
             console.log("DEBUG: Calling OpenRouter for model", model);
 
             const payload: any = {
@@ -90,6 +200,7 @@ export async function createApp() {
                 messages,
                 stream: true,
                 include_usage: true,
+                max_tokens: 300 // Optimization 2: Response Limit
             };
 
             const response = await fetch(
@@ -117,6 +228,7 @@ export async function createApp() {
             }
 
             let lastChunkTokens = 0;
+            let fullText = "";
 
             res.setHeader("Content-Type", "text/event-stream");
             res.setHeader("Cache-Control", "no-cache");
@@ -139,6 +251,9 @@ export async function createApp() {
                         if (dataStr && dataStr !== "[DONE]") {
                             try {
                                 const parsed = JSON.parse(dataStr);
+                                if (parsed.choices?.[0]?.delta?.content) {
+                                    fullText += parsed.choices[0].delta.content;
+                                }
                                 if (parsed.usage) {
                                     lastChunkTokens = parsed.usage.total_tokens || 0;
                                 }
@@ -149,6 +264,15 @@ export async function createApp() {
             }
 
             res.end();
+
+            // Save to Cache after stream completes
+            if (fullText.trim()) {
+                await supabase.from("prompt_cache").upsert({
+                    id: cacheKey,
+                    prompt: lastMessage,
+                    response: fullText
+                });
+            }
 
             if (lastChunkTokens > 0) {
                 console.log("DEBUG: Attempting to log usage tokens:", lastChunkTokens);
