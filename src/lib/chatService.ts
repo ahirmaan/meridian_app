@@ -120,22 +120,42 @@ export async function updateChatTimestamp(chatId: string) {
 }
 
 export async function updateChatRoles(chatId: string, roles: Record<string, string>) {
-    console.log(`[chatService] updateChatRoles for ${chatId}:`, roles);
+    console.log(`[chatService] updateChatRoles starting for ${chatId}...`);
+    console.log(`[chatService] Roles to save:`, JSON.stringify(roles));
+
     if (!supabaseEnabled || !supabase) {
-        console.warn("[chatService] Supabase not enabled or not found.");
+        console.error("[chatService] Supabase not initialized correctly.");
+        throw new Error("Supabase not initialized");
+    }
+
+    // Defensive check: ensure chatId is valid
+    if (!chatId || chatId === "null" || chatId === "undefined") {
+        console.error("[chatService] Invalid chatId provided to updateChatRoles");
         return;
     }
-    const { data, error } = await supabase
+
+    const { data, error, count } = await supabase
         .from("chats")
-        .update({ model_roles: roles, updated_at: new Date().toISOString() })
+        .update({
+            model_roles: roles,
+            updated_at: new Date().toISOString()
+        })
         .eq("id", chatId)
         .select();
 
     if (error) {
-        console.error("[chatService] updateChatRoles error:", error.message);
+        console.error("[chatService] Supabase Update Error:", error);
+        console.error("[chatService] Error Message:", error.message);
+        console.error("[chatService] Error Details:", error.details);
         throw error;
     }
-    console.log("[chatService] updateChatRoles success:", data);
+
+    console.log(`[chatService] Update successful. Rows affected: ${data?.length || 0}`);
+    console.log(`[chatService] Final DB State:`, data);
+
+    if (!data || data.length === 0) {
+        console.warn("[chatService] No rows were updated. Check if the chatId exists and belongs to you.");
+    }
 }
 
 // ── Messages ───────────────────────────────────────

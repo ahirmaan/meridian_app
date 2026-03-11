@@ -158,7 +158,8 @@ export default function ChatPage() {
           type: c.type,
           default_model: c.default_model,
           multi_model: c.multi_model,
-          model_roles: c.model_roles
+          multi_model: c.multi_model,
+          model_roles: typeof c.model_roles === 'string' ? JSON.parse(c.model_roles) : (c.model_roles || {})
         };
         console.log(`[ChatPage] Loaded chat ${c.id} with roles:`, c.model_roles);
         if (c.is_locked) {
@@ -619,13 +620,15 @@ export default function ChatPage() {
     try {
       setSaveError(null);
       await updateChatRoles(activeChatId, roles);
-      console.log("[ChatPage] updateChatRoles finished.");
+      console.log("[ChatPage] updateChatRoles logic finished successfully.");
     } catch (err: any) {
       console.error("[ChatPage] updateChatRoles failed:", err);
-      setSaveError("Failed to save roles. This is usually due to database permissions.");
-      // Revert local state on failure to avoid false confidence
-      const revert = [...regularChats, ...lockedChats].find(c => c.id === activeChatId)?.model_roles || {};
-      setModelRoles(revert);
+      const errorMsg = err.message || "Unknown error";
+      setSaveError(`Failed to save: ${errorMsg}`);
+
+      // Attempt recovery: re-fetch the chat data to be sure
+      const chat = [...regularChats, ...lockedChats].find(c => c.id === activeChatId);
+      if (chat) setModelRoles(chat.model_roles || {});
     }
   };
 
@@ -657,7 +660,10 @@ export default function ChatPage() {
 
           // Load roles for this chat
           const chat = [...regularChats, ...lockedChats].find(c => c.id === id);
-          setModelRoles(chat?.model_roles || {});
+          if (chat) {
+            console.log(`[ChatPage] Switching to chat ${id}, role state:`, chat.model_roles);
+            setModelRoles(chat.model_roles || {});
+          }
 
           // Load messages from DB
           const dbMessages = await loadMessages(id);
