@@ -420,7 +420,10 @@ export default function ChatPage() {
           const lMsg = loadingMessages.find(m => m.modelId === targetId)!;
           const targetModelConfig = AVAILABLE_MODELS.find((m) => m.id === targetId);
           const mNameForPrompt = targetModelConfig?.label || "AI Assistant";
-          let mPrefix = `**${mNameForPrompt}**\n\n`; // Always show model name highlighted
+          let mPrefix = `**${mNameForPrompt}**\n\n`;
+
+          // Restore missing variable
+          const modelApiMessages = [...baseApiMessages];
 
           const currentRole = modelRoles[targetId];
           const otherRoles = Object.entries(modelRoles)
