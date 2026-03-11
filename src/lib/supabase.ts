@@ -1,7 +1,3 @@
-console.log("ENV OBJECT:", import.meta.env);
-console.log("SUPABASE URL:", import.meta.env.VITE_SUPABASE_URL);
-console.log("SUPABASE KEY:", import.meta.env.VITE_SUPABASE_ANON_KEY);
-
 import { createClient } from "@supabase/supabase-js";
 
 const rawUrl = import.meta.env.VITE_SUPABASE_URL;

@@ -65,8 +65,6 @@ export async function createApp() {
 
     if (!supabaseUrl || !supabaseKey) {
         console.error("CRITICAL: Supabase credentials missing during initialization!");
-    } else {
-        console.log("Supabase client initializing with URL:", supabaseUrl);
     }
 
     const supabase = createClient(supabaseUrl || "https://dummy.supabase.co", supabaseKey || "dummy_key");
