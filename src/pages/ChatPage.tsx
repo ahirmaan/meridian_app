@@ -88,6 +88,16 @@ export default function ChatPage() {
     setPasscodeExists(!!savedPasscode);
     setStoredPasscode(savedPasscode);
     setGreeting(GREETINGS[Math.floor(Math.random() * GREETINGS.length)]);
+
+    // Load draft roles if in New Chat state initially
+    const draftRoles = localStorage.getItem("meridian_draft_roles");
+    if (draftRoles) {
+      try {
+        setModelRoles(JSON.parse(draftRoles));
+      } catch (e) {
+        console.error("Failed to parse draft roles:", e);
+      }
+    }
   }, []);
 
   // Initialize User
@@ -160,9 +170,15 @@ export default function ChatPage() {
       setLockedChats(locked);
 
       // If we switched workspaces, our active chat might not exist here anymore
-      if (activeChatId && !dbChats.find(c => c.id === activeChatId)) {
-        setActiveChatId(null);
-        setMessages([]);
+      if (activeChatId) {
+        const found = dbChats.find(c => c.id === activeChatId);
+        if (!found) {
+          setActiveChatId(null);
+          setMessages([]);
+        } else {
+          // Sync roles from loaded chat if active
+          setModelRoles(found.model_roles || {});
+        }
       }
     };
 
@@ -304,7 +320,10 @@ export default function ChatPage() {
         return;
       }
       console.log("[ChatPage] Creating new chat for user:", userId);
-      const dbChat = await createChat(userId, "New Chat", "chat");
+      // Include current modelRoles when creating first message
+      const dbChat = await createChat(userId, "New Chat", "chat", false, {
+        model_roles: modelRoles
+      });
       if (!dbChat) {
         console.error("[ChatPage] createChat failed");
         setLoading(false);
@@ -312,10 +331,18 @@ export default function ChatPage() {
       }
       currentChatId = dbChat.id;
       isFirstMessage = true;
-      const newChat: Chat = { id: currentChatId, title: dbChat.title, type: "chat" };
+      const newChat: Chat = {
+        id: currentChatId,
+        title: dbChat.title,
+        type: "chat",
+        model_roles: dbChat.model_roles
+      };
       setRegularChats((prev) => [newChat, ...prev]);
       setActiveChatId(currentChatId);
       setViewingLockedFolder(false);
+
+      // Clear draft roles
+      localStorage.removeItem("meridian_draft_roles");
       console.log("[ChatPage] New chat created:", currentChatId);
     }
 
@@ -573,8 +600,9 @@ export default function ChatPage() {
   const handleUpdateModelRoles = async (roles: Record<string, string>) => {
     console.log("[ChatPage] handleUpdateModelRoles called with:", roles);
     if (!activeChatId) {
-      console.warn("[ChatPage] No activeChatId, setting state only.");
+      console.warn("[ChatPage] No activeChatId, saving to draft (localStorage).");
       setModelRoles(roles);
+      localStorage.setItem("meridian_draft_roles", JSON.stringify(roles));
       return;
     }
 

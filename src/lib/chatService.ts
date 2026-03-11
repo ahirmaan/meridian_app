@@ -68,7 +68,10 @@ export async function createChat(
             title,
             type,
             is_locked: isLocked,
-            ...extraParams
+            description: extraParams?.description,
+            default_model: extraParams?.default_model,
+            multi_model: extraParams?.multi_model,
+            model_roles: extraParams?.model_roles,
         })
         .select()
         .single();
