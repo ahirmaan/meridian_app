@@ -289,15 +289,23 @@ export async function createApp() {
                 }
             }
 
+            res.end();
+
         } catch (error: any) {
             console.error("CRITICAL DEBUG: Streaming error occurred!");
             console.error("Error Message:", error.message);
             console.error("Error Stack:", error.stack);
-            res.status(500).json({
-                error: "Streaming failed",
-                details: error.message,
-                stack: error.stack
-            });
+
+            if (!res.headersSent) {
+                res.status(500).json({
+                    error: "Streaming failed",
+                    details: error.message,
+                    stack: error.stack
+                });
+            } else {
+                console.error("Headers already sent, cannot send 500 error JSON.");
+                res.end();
+            }
         }
     });
 
