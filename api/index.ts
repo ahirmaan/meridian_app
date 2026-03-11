@@ -142,13 +142,13 @@ export async function createApp() {
                 const summary = await summarizeHistory(toSummarize, process.env.OPENROUTER_API_KEY || "");
                 const remaining = messages.slice(messages.length - 8);
                 messages = [
-                    { role: "system", content: `Conversation summary: ${summary}\n\nRespond concisely unless the user explicitly asks for a detailed explanation.` },
+                    { role: "system", content: `Conversation summary: ${summary}\n\nStrictly keep your response under 150 words to ensure you finish your thought. Be concise and direct.` },
                     ...remaining
                 ];
             } else {
                 // Ensure concise instruction is always present if not summarizing
                 if (messages[0]?.role !== 'system') {
-                    messages.unshift({ role: "system", content: "Respond concisely unless the user explicitly asks for a detailed explanation." });
+                    messages.unshift({ role: "system", content: "Strictly keep your response under 150 words to ensure you finish your thought. Be concise and direct." });
                 }
             }
 
