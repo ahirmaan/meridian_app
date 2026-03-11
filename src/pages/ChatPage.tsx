@@ -35,6 +35,7 @@ interface Chat {
   visibility?: string;
   default_model?: string;
   multi_model?: boolean;
+  model_roles?: Record<string, string>;
 }
 
 const GREETINGS = [
@@ -145,7 +146,8 @@ export default function ChatPage() {
           type: c.type,
           description: c.description,
           default_model: c.default_model,
-          multi_model: c.multi_model
+          multi_model: c.multi_model,
+          model_roles: c.model_roles
         };
         if (c.is_locked) {
           locked.push(chat);
@@ -567,6 +569,19 @@ export default function ChatPage() {
     setLoading(false);
   };
 
+  const handleUpdateModelRoles = async (roles: Record<string, string>) => {
+    setModelRoles(roles);
+    if (activeChatId) {
+      // Update local state in regularChats/lockedChats so it persists across re-selections
+      const updateList = (prev: Chat[]) => prev.map(c => c.id === activeChatId ? { ...c, model_roles: roles } : c);
+      setRegularChats(updateList);
+      setLockedChats(updateList);
+
+      // Save to DB
+      await import("../lib/chatService").then(m => m.updateChatRoles(activeChatId, roles));
+    }
+  };
+
   return (
     <div className="flex h-screen w-full bg-neutral-950 overflow-hidden">
       <MeridianSidebar
@@ -592,6 +607,11 @@ export default function ChatPage() {
           setActiveChatId(id);
           setViewingLockedFolder(isLocked);
           setPinnedModel(null);
+
+          // Load roles for this chat
+          const chat = [...regularChats, ...lockedChats].find(c => c.id === id);
+          setModelRoles(chat?.model_roles || {});
+
           // Load messages from DB
           const dbMessages = await loadMessages(id);
           const mapped: Message[] = dbMessages.map((m, i) => {
@@ -619,6 +639,14 @@ export default function ChatPage() {
         defaultModel={defaultModel}
         setDefaultModel={setDefaultModel}
       />
+
+      {chatSettingsOpen && (
+        <ChatSettingsPanel
+          onClose={() => setChatSettingsOpen(false)}
+          modelRoles={modelRoles}
+          setModelRoles={handleUpdateModelRoles}
+        />
+      )}
       <main className="flex flex-1 overflow-hidden relative">
         <div className="flex flex-1 flex-col overflow-hidden relative">
           {/* Header */}

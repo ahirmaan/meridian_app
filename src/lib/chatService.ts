@@ -9,6 +9,7 @@ export interface DbChat {
     description?: string;
     default_model?: string;
     multi_model?: boolean;
+    model_roles?: Record<string, string>;
     created_at: string;
     updated_at: string;
 }
@@ -56,6 +57,7 @@ export async function createChat(
         description?: string;
         default_model?: string;
         multi_model?: boolean;
+        model_roles?: Record<string, string>;
     }
 ): Promise<DbChat | null> {
     if (!supabaseEnabled || !supabase) return null;
@@ -112,6 +114,16 @@ export async function updateChatTimestamp(chatId: string) {
         .from("chats")
         .update({ updated_at: new Date().toISOString() })
         .eq("id", chatId);
+}
+
+export async function updateChatRoles(chatId: string, roles: Record<string, string>) {
+    if (!supabaseEnabled || !supabase) return;
+    const { error } = await supabase
+        .from("chats")
+        .update({ model_roles: roles, updated_at: new Date().toISOString() })
+        .eq("id", chatId);
+
+    if (error) console.error("updateChatRoles error:", error.message);
 }
 
 // ── Messages ───────────────────────────────────────
