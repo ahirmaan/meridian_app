@@ -80,6 +80,7 @@ export default function ChatPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const [tokenLimitReached, setTokenLimitReached] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Load user, workspaces, and initial chats on mount
   useEffect(() => {
@@ -616,10 +617,15 @@ export default function ChatPage() {
     // Save to DB
     console.log(`[ChatPage] Saving roles to DB for chat ${activeChatId}...`);
     try {
+      setSaveError(null);
       await updateChatRoles(activeChatId, roles);
       console.log("[ChatPage] updateChatRoles finished.");
-    } catch (err) {
+    } catch (err: any) {
       console.error("[ChatPage] updateChatRoles failed:", err);
+      setSaveError("Failed to save roles. This is usually due to database permissions.");
+      // Revert local state on failure to avoid false confidence
+      const revert = [...regularChats, ...lockedChats].find(c => c.id === activeChatId)?.model_roles || {};
+      setModelRoles(revert);
     }
   };
 
@@ -723,7 +729,10 @@ export default function ChatPage() {
                   )}
                   <Tooltip content="Chat Settings" delay={300}>
                     <button
-                      onClick={() => setChatSettingsOpen(true)}
+                      onClick={() => {
+                        setChatSettingsOpen(true);
+                        setSaveError(null);
+                      }}
                       className="p-2 rounded-lg hover:bg-neutral-800 transition-colors text-neutral-400 hover:text-white relative"
                     >
                       <Settings className="w-4 h-4" />
@@ -736,6 +745,14 @@ export default function ChatPage() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {saveError && (
+            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[100] bg-red-500 text-white text-xs px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
+              <AlertTriangle className="w-3 h-3" />
+              {saveError}
+              <button onClick={() => setSaveError(null)} className="ml-2 hover:opacity-70">✕</button>
+            </div>
+          )}
 
           <div className="flex-1 flex flex-col overflow-hidden">
             <AnimatePresence mode="wait">
