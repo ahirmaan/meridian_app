@@ -198,8 +198,10 @@ export async function createApp() {
                 messages,
                 stream: true,
                 include_usage: true,
-                max_tokens: 800 // High enough to finish thoughts, low enough to save costs
+                max_tokens: 800
             };
+
+            console.log(`[Optimizer] Sending prompt to ${model}. Full Messages:`, JSON.stringify(messages, null, 2));
 
             const response = await fetch(
                 "https://openrouter.ai/api/v1/chat/completions",

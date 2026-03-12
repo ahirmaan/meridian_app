@@ -22,6 +22,7 @@ export function ChatSettingsPanel({
     });
 
     const handleSave = () => {
+        console.error("DIAGNOSTIC: ChatSettingsPanel handleSave clicked!");
         // Filter out empty roles
         const cleaned: Record<string, string> = {};
         for (const [key, val] of Object.entries(localRoles)) {

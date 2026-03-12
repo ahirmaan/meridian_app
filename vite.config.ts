@@ -10,9 +10,9 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), tailwindcss()],
-    publicDir: 'static',
+    publicDir: 'public',
     build: {
-      outDir: 'public',
+      outDir: 'dist',
       emptyOutDir: true,
     },
     define: {

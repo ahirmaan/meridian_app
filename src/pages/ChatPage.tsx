@@ -599,8 +599,8 @@ export default function ChatPage() {
   };
 
   const handleUpdateModelRoles = async (roles: Record<string, string>) => {
-    console.log("[ChatPage] handleUpdateModelRoles initiated for:", activeChatId);
-    console.log("[ChatPage] Roles payload:", roles);
+    console.error("DIAGNOSTIC: handleUpdateModelRoles CALLED!", roles);
+    console.warn("DIAGNOSTIC: activeChatId is:", activeChatId);
     if (!activeChatId) {
       console.warn("[ChatPage] No activeChatId, saving to draft (localStorage).");
       setModelRoles(roles);
