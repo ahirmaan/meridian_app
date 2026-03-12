@@ -146,7 +146,7 @@ export async function createApp() {
             } else {
                 // Ensure concise instruction is always present if not summarizing
                 if (messages[0]?.role !== 'system') {
-                    messages.unshift({ role: "system", content: "Strictly keep your response under 250 words to ensure you can fully finish your thought. Be concise but complete." });
+                    messages.unshift({ role: "system", content: "Respond as a helpful AI assistant. Be concise and complete." });
                 }
             }
 

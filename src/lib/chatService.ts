@@ -9,7 +9,6 @@ export interface DbChat {
     description?: string;
     default_model?: string;
     multi_model?: boolean;
-    model_roles?: Record<string, string>;
     created_at: string;
     updated_at: string;
 }
@@ -57,7 +56,6 @@ export async function createChat(
         description?: string;
         default_model?: string;
         multi_model?: boolean;
-        model_roles?: Record<string, string>;
     }
 ): Promise<DbChat | null> {
     if (!supabaseEnabled || !supabase) return null;
@@ -71,7 +69,6 @@ export async function createChat(
             description: extraParams?.description,
             default_model: extraParams?.default_model,
             multi_model: extraParams?.multi_model,
-            model_roles: extraParams?.model_roles,
         })
         .select()
         .single();
@@ -117,45 +114,6 @@ export async function updateChatTimestamp(chatId: string) {
         .from("chats")
         .update({ updated_at: new Date().toISOString() })
         .eq("id", chatId);
-}
-
-export async function updateChatRoles(chatId: string, roles: Record<string, string>) {
-    console.log(`[chatService] updateChatRoles starting for ${chatId}...`);
-    console.log(`[chatService] Roles to save:`, JSON.stringify(roles));
-
-    if (!supabaseEnabled || !supabase) {
-        console.error("[chatService] Supabase not initialized correctly.");
-        throw new Error("Supabase not initialized");
-    }
-
-    // Defensive check: ensure chatId is valid
-    if (!chatId || chatId === "null" || chatId === "undefined") {
-        console.error("[chatService] Invalid chatId provided to updateChatRoles");
-        return;
-    }
-
-    const { data, error, count } = await supabase
-        .from("chats")
-        .update({
-            model_roles: roles,
-            updated_at: new Date().toISOString()
-        })
-        .eq("id", chatId)
-        .select();
-
-    if (error) {
-        console.error("[chatService] Supabase Update Error:", error);
-        console.error("[chatService] Error Message:", error.message);
-        console.error("[chatService] Error Details:", error.details);
-        throw error;
-    }
-
-    console.log(`[chatService] Update successful. Rows affected: ${data?.length || 0}`);
-    console.log(`[chatService] Final DB State:`, data);
-
-    if (!data || data.length === 0) {
-        console.warn("[chatService] No rows were updated. Check if the chatId exists and belongs to you.");
-    }
 }
 
 // ── Messages ───────────────────────────────────────

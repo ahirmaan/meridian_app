@@ -24,7 +24,6 @@ import {
   loadMessages,
   saveMessage,
   updateChatTimestamp,
-  updateChatRoles,
 } from "../lib/chatService";
 
 let msgCounter = 0;
@@ -36,7 +35,6 @@ interface Chat {
   visibility?: string;
   default_model?: string;
   multi_model?: boolean;
-  model_roles?: Record<string, string>;
 }
 
 const GREETINGS = [
@@ -68,12 +66,11 @@ export default function ChatPage() {
   );
   const [pinnedModel, setPinnedModel] = useState<string | null>(null);
 
-  // Reset pinned model when default model changes in settings
   const handleSetDefaultModel = (model: string) => {
     setDefaultModel(model);
     setPinnedModel(null);
   };
-  const [modelRoles, setModelRoles] = useState<Record<string, string>>({});
+
   const [chatSettingsOpen, setChatSettingsOpen] = useState(false);
   const [projectDetailsOpen, setProjectDetailsOpen] = useState(false);
   const [artifact, setArtifact] = useState<{ code: string; language: string } | null>(null);
@@ -90,15 +87,6 @@ export default function ChatPage() {
     setStoredPasscode(savedPasscode);
     setGreeting(GREETINGS[Math.floor(Math.random() * GREETINGS.length)]);
 
-    // Load draft roles if in New Chat state initially
-    const draftRoles = localStorage.getItem("meridian_draft_roles");
-    if (draftRoles) {
-      try {
-        setModelRoles(JSON.parse(draftRoles));
-      } catch (e) {
-        console.error("Failed to parse draft roles:", e);
-      }
-    }
   }, []);
 
   // Initialize User
@@ -158,9 +146,8 @@ export default function ChatPage() {
           type: c.type,
           default_model: c.default_model,
           multi_model: c.multi_model,
-          model_roles: typeof c.model_roles === 'string' ? JSON.parse(c.model_roles) : (c.model_roles || {})
         };
-        console.log(`[ChatPage] Loaded chat ${c.id} with roles:`, c.model_roles);
+        console.log(`[ChatPage] Loaded chat ${c.id}`);
         if (c.is_locked) {
           locked.push(chat);
         } else {
@@ -176,9 +163,6 @@ export default function ChatPage() {
         if (!found) {
           setActiveChatId(null);
           setMessages([]);
-        } else {
-          // Sync roles from loaded chat if active
-          setModelRoles(found.model_roles || {});
         }
       }
     };
@@ -321,10 +305,7 @@ export default function ChatPage() {
         return;
       }
       console.log("[ChatPage] Creating new chat for user:", userId);
-      // Include current modelRoles when creating first message
-      const dbChat = await createChat(userId, "New Chat", "chat", false, {
-        model_roles: modelRoles
-      });
+      const dbChat = await createChat(userId, "New Chat", "chat", false);
       if (!dbChat) {
         console.error("[ChatPage] createChat failed");
         setLoading(false);
@@ -336,14 +317,11 @@ export default function ChatPage() {
         id: currentChatId,
         title: dbChat.title,
         type: "chat",
-        model_roles: dbChat.model_roles
       };
       setRegularChats((prev) => [newChat, ...prev]);
       setActiveChatId(currentChatId);
       setViewingLockedFolder(false);
 
-      // Clear draft roles
-      localStorage.removeItem("meridian_draft_roles");
       console.log("[ChatPage] New chat created:", currentChatId);
     }
 
@@ -453,25 +431,9 @@ export default function ChatPage() {
           const mNameForPrompt = targetModelConfig?.label || "AI Assistant";
           let mPrefix = `**${mNameForPrompt}**\n\n`;
 
-          // Restore missing variable
           const modelApiMessages = [...baseApiMessages];
 
-          const currentRole = modelRoles[targetId];
-          const otherRoles = Object.entries(modelRoles)
-            .filter(([id, role]) => id !== targetId && role.trim())
-            .map(([id, role]) => {
-              const model = AVAILABLE_MODELS.find((m) => m.id === id);
-              return `${model?.label || id}: ${role}`;
-            });
-
           let systemPrompt = "Respond as a helpful AI assistant. ";
-
-          if (currentRole) {
-            systemPrompt += `You are a specialist with the role: ${currentRole}. Respond with expertise in this area. `;
-          }
-          if (otherRoles.length > 0) {
-            systemPrompt += `Other specialists present: ${otherRoles.join(", ")}. Collaborate if needed by referencing them.`;
-          }
           modelApiMessages.unshift({ role: "system", content: systemPrompt.trim() });
 
           console.log(`[ChatPage] Final Messages for ${targetId}:`, JSON.stringify(modelApiMessages, null, 2));
@@ -598,38 +560,6 @@ export default function ChatPage() {
     setLoading(false);
   };
 
-  const handleUpdateModelRoles = async (roles: Record<string, string>) => {
-    console.log("[ChatPage] handleUpdateModelRoles initiated for:", activeChatId);
-    if (!activeChatId) {
-      console.warn("[ChatPage] No activeChatId, saving to draft (localStorage).");
-      setModelRoles(roles);
-      localStorage.setItem("meridian_draft_roles", JSON.stringify(roles));
-      return;
-    }
-
-    setModelRoles(roles);
-
-    // Update local state in regularChats/lockedChats so it persists across re-selections
-    const updateList = (prev: Chat[]) => prev.map(c => c.id === activeChatId ? { ...c, model_roles: roles } : c);
-    setRegularChats(updateList);
-    setLockedChats(updateList);
-
-    // Save to DB
-    console.log(`[ChatPage] Saving roles to DB for chat ${activeChatId}...`);
-    try {
-      setSaveError(null);
-      await updateChatRoles(activeChatId, roles);
-      console.log("[ChatPage] updateChatRoles logic finished successfully.");
-    } catch (err: any) {
-      console.error("[ChatPage] updateChatRoles failed:", err);
-      const errorMsg = err.message || "Unknown error";
-      setSaveError(`Failed to save: ${errorMsg}`);
-
-      // Attempt recovery: re-fetch the chat data to be sure
-      const chat = [...regularChats, ...lockedChats].find(c => c.id === activeChatId);
-      if (chat) setModelRoles(chat.model_roles || {});
-    }
-  };
 
   return (
     <div className="flex h-screen w-full bg-neutral-950 overflow-hidden">
@@ -656,13 +586,6 @@ export default function ChatPage() {
           setActiveChatId(id);
           setViewingLockedFolder(isLocked);
           setPinnedModel(null);
-
-          // Load roles for this chat
-          const chat = [...regularChats, ...lockedChats].find(c => c.id === id);
-          if (chat) {
-            console.log(`[ChatPage] Switching to chat ${id}, role state:`, chat.model_roles);
-            setModelRoles(chat.model_roles || {});
-          }
 
           // Load messages from DB
           const dbMessages = await loadMessages(id);
@@ -695,8 +618,6 @@ export default function ChatPage() {
       {chatSettingsOpen && (
         <ChatSettingsPanel
           onClose={() => setChatSettingsOpen(false)}
-          modelRoles={modelRoles}
-          setModelRoles={handleUpdateModelRoles}
         />
       )}
       <main className="flex flex-1 overflow-hidden relative">
@@ -741,9 +662,6 @@ export default function ChatPage() {
                       className="p-2 rounded-lg hover:bg-neutral-800 transition-colors text-neutral-400 hover:text-white relative"
                     >
                       <Settings className="w-4 h-4" />
-                      {Object.keys(modelRoles).length > 0 && (
-                        <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-green-500" />
-                      )}
                     </button>
                   </Tooltip>
                 </div>
@@ -938,15 +856,7 @@ export default function ChatPage() {
         </AnimatePresence>
       </main>
 
-      <AnimatePresence>
-        {chatSettingsOpen && (
-          <ChatSettingsPanel
-            onClose={() => setChatSettingsOpen(false)}
-            modelRoles={modelRoles}
-            setModelRoles={setModelRoles}
-          />
-        )}
-      </AnimatePresence>
+
 
       <AnimatePresence>
         {projectDetailsOpen && (
