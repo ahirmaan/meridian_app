@@ -125,7 +125,12 @@ export async function updateProjectRules(chatId: string, rules: string) {
         .update({ project_rules: rules, updated_at: new Date().toISOString() })
         .eq("id", chatId);
 
-    if (error) console.error("updateProjectRules error:", error.message);
+    if (error) {
+        console.error("updateProjectRules error:", error.message);
+        alert("Failed to save project rules: " + error.message);
+    } else {
+        console.log("updateProjectRules success for", chatId);
+    }
 }
 
 // ── Messages ───────────────────────────────────────

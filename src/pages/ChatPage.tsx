@@ -145,6 +145,8 @@ export default function ChatPage() {
           id: c.id,
           title: c.title,
           type: c.type,
+          description: c.description,
+          visibility: c.visibility,
           default_model: c.default_model,
           multi_model: c.multi_model,
           project_rules: c.project_rules,
