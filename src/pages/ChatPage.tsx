@@ -24,6 +24,7 @@ import {
   loadMessages,
   saveMessage,
   updateChatTimestamp,
+  deleteMessagesForChat,
 } from "../lib/chatService";
 
 let msgCounter = 0;
@@ -36,6 +37,8 @@ interface Chat {
   default_model?: string;
   multi_model?: boolean;
   project_rules?: string;
+  is_pinned?: boolean;
+  show_thought_trace?: boolean;
 }
 
 const GREETINGS = [
@@ -150,6 +153,8 @@ export default function ChatPage() {
           default_model: c.default_model,
           multi_model: c.multi_model,
           project_rules: c.project_rules,
+          is_pinned: c.is_pinned,
+          show_thought_trace: c.show_thought_trace !== false, // default true
         };
         console.log(`[ChatPage] Loaded chat ${c.id}`);
         if (c.is_locked) {
@@ -628,6 +633,18 @@ export default function ChatPage() {
       {chatSettingsOpen && (
         <ChatSettingsPanel
           onClose={() => setChatSettingsOpen(false)}
+          chat={([...regularChats, ...lockedChats].find(c => c.id === activeChatId) as any) || { id: "", is_pinned: false, show_thought_trace: true }}
+          onUpdate={(id, updates) => {
+            const updater = (prev: Chat[]) => prev.map(c => c.id === id ? { ...c, ...updates } : c);
+            setRegularChats(updater);
+            setLockedChats(updater);
+          }}
+          onClearHistory={async () => {
+            if (!activeChatId) return;
+            setMessages([]);
+            setChatSettingsOpen(false);
+            await deleteMessagesForChat(activeChatId);
+          }}
         />
       )}
       <main className="flex flex-1 overflow-hidden relative">

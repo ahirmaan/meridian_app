@@ -10,6 +10,9 @@ export interface DbChat {
     default_model?: string;
     multi_model?: boolean;
     project_rules?: string;
+    visibility?: string;
+    is_pinned?: boolean;
+    show_thought_trace?: boolean;
     created_at: string;
     updated_at: string;
 }
@@ -133,6 +136,24 @@ export async function updateProjectRules(chatId: string, rules: string) {
     }
 }
 
+export async function updateChatPinned(chatId: string, pinned: boolean) {
+    if (!supabaseEnabled || !supabase) return;
+    const { error } = await supabase
+        .from("chats")
+        .update({ is_pinned: pinned, updated_at: new Date().toISOString() })
+        .eq("id", chatId);
+    if (error) console.error("updateChatPinned error:", error.message);
+}
+
+export async function updateChatThoughtTrace(chatId: string, show: boolean) {
+    if (!supabaseEnabled || !supabase) return;
+    const { error } = await supabase
+        .from("chats")
+        .update({ show_thought_trace: show, updated_at: new Date().toISOString() })
+        .eq("id", chatId);
+    if (error) console.error("updateChatThoughtTrace error:", error.message);
+}
+
 // ── Messages ───────────────────────────────────────
 
 export async function loadMessages(chatId: string): Promise<DbMessage[]> {
@@ -167,4 +188,9 @@ export async function saveMessage(
         return null;
     }
     return data;
+}
+export async function deleteMessagesForChat(chatId: string) {
+    if (!supabaseEnabled || !supabase) return;
+    const { error } = await supabase.from("messages").delete().eq("chat_id", chatId);
+    if (error) console.error("deleteMessagesForChat error:", error.message);
 }

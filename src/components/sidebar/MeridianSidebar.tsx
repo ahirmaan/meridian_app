@@ -23,6 +23,8 @@ import {
   Info,
   ChevronDown,
   Check,
+  Pin,
+  PinOff,
 } from "lucide-react";
 import {
   Sidebar,
@@ -39,6 +41,7 @@ interface Chat {
   id: string;
   title: string;
   type: "chat" | "project";
+  is_pinned?: boolean;
 }
 
 interface MeridianSidebarProps {
@@ -211,21 +214,23 @@ export function MeridianSidebar({
                       Past Chats
                     </p>
                     {regularChats.length > 0 ? (
-                      regularChats.map((chat) => (
-                        <ChatItem
-                          key={chat.id}
-                          chat={chat}
-                          isActive={chat.id === activeChatId}
-                          onSelect={() => onSelectChat(chat.id)}
-                          onRenameRequest={(title) => onRenameChat(chat.id, title)}
-                          onDeleteRequest={(title) => {
-                            console.log("Delete button clicked for regular chat!", title);
-                            setDeleteModalState({ isOpen: true, chatId: chat.id, chatTitle: title });
-                          }}
-                          onMoveToLocked={() => handleMoveToLockedClick(chat.id)}
-                          isLocked={false}
-                        />
-                      ))
+                      [...regularChats]
+                        .sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0))
+                        .map((chat) => (
+                          <ChatItem
+                            key={chat.id}
+                            chat={chat}
+                            isActive={chat.id === activeChatId}
+                            onSelect={() => onSelectChat(chat.id)}
+                            onRenameRequest={(title) => onRenameChat(chat.id, title)}
+                            onDeleteRequest={(title) => {
+                              console.log("Delete button clicked for regular chat!", title);
+                              setDeleteModalState({ isOpen: true, chatId: chat.id, chatTitle: title });
+                            }}
+                            onMoveToLocked={() => handleMoveToLockedClick(chat.id)}
+                            isLocked={false}
+                          />
+                        ))
                     ) : (
                       <p className="text-[11px] text-neutral-700 px-2 py-4 text-center italic">
                         No chats found
@@ -485,10 +490,11 @@ function ChatItem({
           />
         ) : (
           <span className={cn(
-            "flex-1 text-sm truncate",
+            "flex-1 text-sm truncate flex items-center gap-2",
             isActive ? "text-neutral-100 font-medium ml-1" : "text-neutral-400"
           )}>
             {chat.title}
+            {chat.is_pinned && <Pin className="w-2.5 h-2.5 text-amber-500 fill-amber-500/20" />}
           </span>
         )}
 
