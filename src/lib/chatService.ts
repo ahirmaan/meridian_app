@@ -9,6 +9,7 @@ export interface DbChat {
     description?: string;
     default_model?: string;
     multi_model?: boolean;
+    project_rules?: string;
     created_at: string;
     updated_at: string;
 }
@@ -56,6 +57,7 @@ export async function createChat(
         description?: string;
         default_model?: string;
         multi_model?: boolean;
+        project_rules?: string;
     }
 ): Promise<DbChat | null> {
     if (!supabaseEnabled || !supabase) return null;
@@ -69,6 +71,7 @@ export async function createChat(
             description: extraParams?.description,
             default_model: extraParams?.default_model,
             multi_model: extraParams?.multi_model,
+            project_rules: extraParams?.project_rules,
         })
         .select()
         .single();
@@ -97,7 +100,6 @@ export async function deleteChat(chatId: string) {
     const { error } = await supabase.from("chats").delete().eq("id", chatId);
     if (error) console.error("deleteChat error:", error.message);
 }
-
 export async function toggleChatLocked(chatId: string, isLocked: boolean) {
     if (!supabaseEnabled || !supabase) return;
     const { error } = await supabase
@@ -114,6 +116,16 @@ export async function updateChatTimestamp(chatId: string) {
         .from("chats")
         .update({ updated_at: new Date().toISOString() })
         .eq("id", chatId);
+}
+
+export async function updateProjectRules(chatId: string, rules: string) {
+    if (!supabaseEnabled || !supabase) return;
+    const { error } = await supabase
+        .from("chats")
+        .update({ project_rules: rules, updated_at: new Date().toISOString() })
+        .eq("id", chatId);
+
+    if (error) console.error("updateProjectRules error:", error.message);
 }
 
 // ── Messages ───────────────────────────────────────

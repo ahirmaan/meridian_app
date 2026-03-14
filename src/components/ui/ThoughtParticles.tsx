@@ -15,6 +15,12 @@ export function ThoughtParticles() {
 
         let animationFrameId: number;
         let particles: Particle[] = [];
+        let mouse = { x: -1000, y: -1000 };
+
+        const handleMouseMove = (e: MouseEvent) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        };
 
         const resize = () => {
             canvas.width = window.innerWidth;
@@ -24,30 +30,58 @@ export function ThoughtParticles() {
         class Particle {
             x: number;
             y: number;
+            originX: number;
+            originY: number;
             size: number;
             speedX: number;
             speedY: number;
+            vx: number;
+            vy: number;
             opacity: number;
             fadeSpeed: number;
+            density: number;
 
             constructor() {
                 this.x = Math.random() * canvas.width;
                 this.y = Math.random() * canvas.height;
+                this.originX = this.x;
+                this.originY = this.y;
                 this.size = Math.random() * 1.5 + 0.5;
                 this.speedX = (Math.random() - 0.5) * 0.2;
                 this.speedY = -(Math.random() * 0.3 + 0.1);
+                this.vx = 0;
+                this.vy = 0;
                 this.opacity = Math.random() * 0.5;
                 this.fadeSpeed = Math.random() * 0.005 + 0.002;
+                this.density = (Math.random() * 20) + 1;
             }
 
             update() {
+                // Background movement
                 this.x += this.speedX;
                 this.y += this.speedY;
+
+                // Mouse interaction (Avoidance)
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+                let forceDirectionX = dx / distance;
+                let forceDirectionY = dy / distance;
+                const maxDistance = 100;
+                let force = (maxDistance - distance) / maxDistance;
+
+                if (distance < maxDistance) {
+                    this.x -= forceDirectionX * force * this.density;
+                    this.y -= forceDirectionY * force * this.density;
+                }
 
                 if (this.y < 0) {
                     this.y = canvas.height;
                     this.x = Math.random() * canvas.width;
                 }
+
+                // Bounce off edges if pushed too far
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
 
                 // Pulse opacity
                 this.opacity += this.fadeSpeed;
@@ -91,12 +125,14 @@ export function ThoughtParticles() {
         };
 
         window.addEventListener("resize", resize);
+        window.addEventListener("mousemove", handleMouseMove);
         resize();
         init();
         animate();
 
         return () => {
             window.removeEventListener("resize", resize);
+            window.removeEventListener("mousemove", handleMouseMove);
             cancelAnimationFrame(animationFrameId);
         };
     }, []);

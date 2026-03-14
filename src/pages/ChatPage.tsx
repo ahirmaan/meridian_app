@@ -35,6 +35,7 @@ interface Chat {
   visibility?: string;
   default_model?: string;
   multi_model?: boolean;
+  project_rules?: string;
 }
 
 const GREETINGS = [
@@ -146,6 +147,7 @@ export default function ChatPage() {
           type: c.type,
           default_model: c.default_model,
           multi_model: c.multi_model,
+          project_rules: c.project_rules,
         };
         console.log(`[ChatPage] Loaded chat ${c.id}`);
         if (c.is_locked) {
@@ -237,7 +239,8 @@ export default function ChatPage() {
       type: "project",
       description: project.description,
       default_model: project.model,
-      multi_model: project.multiModel
+      multi_model: project.multiModel,
+      project_rules: ""
     };
     setRegularChats((prev) => [newChat, ...prev]);
     setActiveChatId(newChat.id);
@@ -432,8 +435,12 @@ export default function ChatPage() {
           let mPrefix = `**${mNameForPrompt}**\n\n`;
 
           const modelApiMessages = [...baseApiMessages];
+          const activeChat = [...regularChats, ...lockedChats].find(c => c.id === activeChatId);
 
           let systemPrompt = "Respond as a helpful AI assistant. ";
+          if (activeChat?.type === "project" && activeChat.project_rules) {
+            systemPrompt += `\n\nPROJECT GUIDELINES:\n${activeChat.project_rules}\n\n`;
+          }
           modelApiMessages.unshift({ role: "system", content: systemPrompt.trim() });
 
           console.log(`[ChatPage] Final Messages for ${targetId}:`, JSON.stringify(modelApiMessages, null, 2));
@@ -511,7 +518,7 @@ export default function ChatPage() {
                         fullReasoning += reasoning;
                         setMessages((prev) => prev.map((m) =>
                           m.id === lMsg.id
-                            ? { ...m, content: mPrefix + fullText }
+                            ? { ...m, content: mPrefix + fullText, reasoning: fullReasoning }
                             : m
                         ));
                       }
@@ -604,6 +611,7 @@ export default function ChatPage() {
               id: m.id,
               role: m.role as "user" | "assistant",
               content: content,
+              reasoning: reasoning,
             };
           });
           setMessages(mapped);
@@ -862,7 +870,12 @@ export default function ChatPage() {
         {projectDetailsOpen && (
           <ProjectDetailsPanel
             onClose={() => setProjectDetailsOpen(false)}
-            project={[...regularChats, ...lockedChats].find(c => c.id === activeChatId) || { title: "Project" }}
+            project={([...regularChats, ...lockedChats].find(c => c.id === activeChatId) as any) || { id: "", title: "Project" }}
+            onUpdateRules={(id, rules) => {
+              const updater = (prev: Chat[]) => prev.map(c => c.id === id ? { ...c, project_rules: rules } : c);
+              setRegularChats(updater);
+              setLockedChats(updater);
+            }}
           />
         )}
       </AnimatePresence>

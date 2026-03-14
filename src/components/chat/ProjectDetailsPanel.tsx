@@ -1,25 +1,38 @@
-"use client";
-
 import { motion } from "framer-motion";
-import { X, FolderGit2, Users, Lock, Bot, Info } from "lucide-react";
-import React from "react";
+import { X, FolderGit2, Users, Lock, Bot, Info, Save, Sparkles } from "lucide-react";
+import React, { useState } from "react";
 import { Tooltip } from "../ui/Tooltip";
+import { updateProjectRules } from "../../lib/chatService";
 
 interface ProjectDetailsPanelProps {
     onClose: () => void;
     project: {
+        id: string;
         title: string;
         description?: string;
         visibility?: string;
         default_model?: string;
         multi_model?: boolean;
+        project_rules?: string;
     };
+    onUpdateRules: (id: string, rules: string) => void;
 }
 
 export function ProjectDetailsPanel({
     onClose,
     project,
+    onUpdateRules,
 }: ProjectDetailsPanelProps) {
+    const [rules, setRules] = useState(project.project_rules || "");
+    const [saving, setSaving] = useState(false);
+
+    const handleSaveRules = async () => {
+        setSaving(true);
+        await updateProjectRules(project.id, rules);
+        onUpdateRules(project.id, rules);
+        setSaving(false);
+    };
+
     return (
         <>
             <motion.div
@@ -71,9 +84,37 @@ export function ProjectDetailsPanel({
                         ) : (
                             <p className="text-sm text-neutral-600 italic">No description provided.</p>
                         )}
-                        <p className="text-[11px] text-neutral-500 mt-1 flex items-center gap-1.5">
-                            💡 The AI uses this description as context for all responses in this project.
-                        </p>
+                    </div>
+
+                    <div className="w-full h-px bg-neutral-800/50" />
+
+                    {/* Project Pinning (Rules) */}
+                    <div className="flex flex-col gap-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Sparkles className="w-4 h-4 text-amber-500" />
+                                <h4 className="text-xs font-semibold text-white uppercase tracking-wider">Project Rules</h4>
+                            </div>
+                            <button
+                                onClick={handleSaveRules}
+                                disabled={saving || rules === project.project_rules}
+                                className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest bg-white text-black px-3 py-1 rounded-full hover:bg-neutral-200 disabled:opacity-30 disabled:hover:bg-white transition-all"
+                            >
+                                <Save className="w-3 h-3" />
+                                {saving ? "Saving..." : "Save Rules"}
+                            </button>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <textarea
+                                value={rules}
+                                onChange={(e) => setRules(e.target.value)}
+                                placeholder="Paste project guidelines, tech stack preferred, or behavior rules here. These are pinned to every model's memory..."
+                                className="w-full h-40 bg-neutral-900 border border-neutral-800 rounded-xl p-4 text-sm text-neutral-300 placeholder:text-neutral-700 focus:outline-none focus:ring-1 focus:ring-neutral-600 transition-all resize-none"
+                            />
+                            <p className="text-[10px] text-neutral-500 leading-relaxed">
+                                💡 These rules are injected into the secret "System Prompt" of every AI model you talk to within this project.
+                            </p>
+                        </div>
                     </div>
 
                     <div className="w-full h-px bg-neutral-800/50" />

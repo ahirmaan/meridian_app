@@ -23,6 +23,7 @@ export interface Message {
   loading?: boolean;
   attachments?: Attachment[];
   modelId?: string;
+  reasoning?: string;
 }
 
 interface ChatMessagesProps {
@@ -147,6 +148,18 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
                     </div>
                     <span className="text-sm font-semibold text-neutral-300 shadow-sm">{modelName}</span>
                   </div>
+                )}
+                {msg.reasoning && (
+                  <details className="mb-4 bg-neutral-900/40 border border-neutral-800 rounded-xl overflow-hidden group">
+                    <summary className="px-4 py-2.5 text-[11px] font-bold text-neutral-500 cursor-pointer hover:bg-neutral-800/40 transition-colors flex items-center gap-2.5 list-none">
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500/80 animate-pulse" />
+                      THOUGHT TRACE
+                      <span className="text-[9px] text-neutral-700 ml-auto group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <div className="px-4 py-3.5 text-xs text-neutral-400 leading-relaxed border-t border-neutral-800 bg-neutral-900/20 whitespace-pre-wrap italic opacity-80">
+                      {msg.reasoning}
+                    </div>
+                  </details>
                 )}
                 {msg.loading && !contentToRender ? (
                   <div className="flex items-center">
