@@ -28,6 +28,7 @@ export interface Message {
 
 interface ChatMessagesProps {
   messages: Message[];
+  showThoughtTrace?: boolean;
 }
 
 const ModelIcon = ({ name }: { name: string }) => {
@@ -91,7 +92,7 @@ const CodeBlock = ({ className, children }: { className?: string, children: Reac
   );
 };
 
-export function ChatMessages({ messages }: ChatMessagesProps) {
+export function ChatMessages({ messages, showThoughtTrace = true }: ChatMessagesProps) {
   return (
     <div className="flex flex-col gap-8 w-full py-8">
       {messages.map((msg) => (
@@ -149,7 +150,7 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
                     <span className="text-sm font-semibold text-neutral-300 shadow-sm">{modelName}</span>
                   </div>
                 )}
-                {msg.reasoning && (
+                {msg.reasoning && showThoughtTrace && (
                   <details className="mb-4 bg-neutral-900/40 border border-neutral-800 rounded-xl overflow-hidden group">
                     <summary className="px-4 py-2.5 text-[11px] font-bold text-neutral-500 cursor-pointer hover:bg-neutral-800/40 transition-colors flex items-center gap-2.5 list-none">
                       <div className="w-1.5 h-1.5 rounded-full bg-amber-500/80 animate-pulse" />

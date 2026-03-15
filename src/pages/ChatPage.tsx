@@ -838,7 +838,10 @@ export default function ChatPage() {
                     }}
                   >
                     <div className="max-w-3xl mx-auto w-full">
-                      <ChatMessages messages={messages} />
+                      <ChatMessages
+                        messages={messages}
+                        showThoughtTrace={[...regularChats, ...lockedChats].find(c => c.id === activeChatId)?.show_thought_trace !== false}
+                      />
                       <div ref={bottomRef} className="h-4" />
                     </div>
                   </div>
