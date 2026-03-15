@@ -494,7 +494,7 @@ export default function ChatPage() {
                 setTokenLimitReached(true);
                 const errorBlock = {
                   type: 'limit_reached',
-                  text: "🔴 **Daily Limit Reached**\n\n*You have consumed your 40,000 free tokens for today. Please wait until tomorrow to continue chatting.*"
+                  text: "🔴 **Daily Limit Reached**\n\n*You have consumed your 100,000 free tokens for today. Please wait until tomorrow to continue chatting.*"
                 };
                 setMessages((prev) => prev.map((m) => m.id === lMsg.id ? { ...m, loading: false, content: mPrefix + errorBlock.text } : m));
                 return;

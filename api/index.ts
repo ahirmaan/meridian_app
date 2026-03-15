@@ -212,7 +212,7 @@ export async function createApp() {
 
             const totalUsedToday = usageData?.reduce((sum, row) => sum + (row.tokens_used || 0), 0) || 0;
 
-            if (totalUsedToday >= 50000) {
+            if (totalUsedToday >= 100000) {
                 console.warn("DEBUG: Token limit reached for", user.id);
                 return res.status(429).json({ error: "Daily token limit reached" });
             }
