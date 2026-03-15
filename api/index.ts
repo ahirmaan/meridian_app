@@ -137,23 +137,37 @@ export async function createApp() {
 
             let { model, messages } = req.body;
 
+            // Detect multimodal requirement (images)
+            const hasImages = messages.some((m: any) =>
+                Array.isArray(m.content) && m.content.some((p: any) => p.type === 'image_url')
+            );
+
             // --- MODEL VALIDATION ---
             const VALID_MODELS = [
                 "nvidia/nemotron-3-nano-30b-a3b:free",
                 "stepfun/step-3.5-flash:free"
             ];
             if (!VALID_MODELS.includes(model)) {
-                console.log(`[Validation] Invalid model ${model} requested. Falling back to Nemotron.`);
-                model = "nvidia/nemotron-3-nano-30b-a3b:free";
+                console.log(`[Validation] Invalid model ${model} requested. Falling back.`);
+                // If has images, fallback to Stepfun (Vision), else Nemotron
+                model = hasImages ? "stepfun/step-3.5-flash:free" : "nvidia/nemotron-3-nano-30b-a3b:free";
+            }
+
+            // If images are present but a non-vision model is selected (like Nemotron), force vision-capable model
+            if (hasImages && model.includes("nemotron")) {
+                console.log("[Validation] Images detected but text-only model requested. Forcing Stepfun Vision.");
+                model = "stepfun/step-3.5-flash:free";
             }
             // ------------------------
 
             // --- OPTIMIZATION LAYER ---
             console.log("[Optimizer] History length:", messages.length);
 
-            // 1. Cheap Model Routing
+            // 1. Cheap Model Routing (only if no images are present to avoid downgrading vision capability)
             const lastMessage = messages[messages.length - 1]?.content || "";
-            model = getOptimalModel(lastMessage, model);
+            if (!hasImages) {
+                model = getOptimalModel(lastMessage, model);
+            }
 
             // 2. Budget Protection & Truncation
             let totalTokens = messages.reduce((acc: number, m: any) => acc + estimateTokens(m.content || ""), 0);
