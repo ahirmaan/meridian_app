@@ -61,7 +61,7 @@ export function CustomSelect({ value, options, onChange, placeholder = "Select..
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -10, scale: 0.95 }}
                         transition={{ duration: 0.15, ease: "easeOut" }}
-                        className="absolute left-0 right-0 top-full mt-2 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl z-[200] overflow-hidden min-w-[200px]"
+                        className="absolute right-0 top-full mt-2 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl z-[200] overflow-hidden min-w-full w-max max-w-[300px]"
                     >
                         <div className="py-1">
                             {options.map((option) => (

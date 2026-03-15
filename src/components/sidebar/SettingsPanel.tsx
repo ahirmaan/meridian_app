@@ -15,6 +15,7 @@ interface SettingsPanelProps {
   defaultModel: string;
   setDefaultModel: (id: string) => void;
   onPasscodeChange?: () => void;
+  initialTab?: SettingsTab;
 }
 
 type SettingsTab = 'General' | 'Personalization' | 'Knowledge' | 'Security' | 'Account';
@@ -24,9 +25,10 @@ export function SettingsPanel({
   defaultModel,
   setDefaultModel,
   onPasscodeChange,
+  initialTab = 'General',
 }: SettingsPanelProps) {
   const { settings, updateSettings } = useSettings();
-  const [activeTab, setActiveTab] = useState<SettingsTab>('General');
+  const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
   const [changePasscodeOpen, setChangePasscodeOpen] = useState(false);
   const passcodeExists = !!localStorage.getItem("meridian_passcode");
 
@@ -55,7 +57,7 @@ export function SettingsPanel({
 
   const PARTICLE_COLORS = [
     { name: 'White', color: '#ffffff' },
-    { name: 'Accent', color: settings.accentColor },
+    { name: 'Accent', color: 'accent' },
     { name: 'Cyan', color: '#06b6d4' },
     { name: 'Pink', color: '#ec4899' },
   ];
@@ -85,8 +87,8 @@ export function SettingsPanel({
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === tab.id
-                    ? "bg-neutral-800 text-white shadow-lg shadow-black/20"
-                    : "text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/40"
+                  ? "bg-neutral-800 text-white shadow-lg shadow-black/20"
+                  : "text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/40"
                   }`}
               >
                 {tab.icon}
@@ -203,7 +205,7 @@ export function SettingsPanel({
                                     onClick={() => updateSettings({ particleColor: c.color })}
                                     className={`w-6 h-6 rounded-full border border-white/20 transition-all ${settings.particleColor === c.color ? 'scale-125 ring-2 ring-white/50 ring-offset-2 ring-offset-neutral-900 shadow-xl' : 'opacity-40 hover:opacity-100'
                                       }`}
-                                    style={{ backgroundColor: c.color }}
+                                    style={{ backgroundColor: c.color === 'accent' ? settings.accentColor : c.color }}
                                     title={c.name}
                                   />
                                 ))}

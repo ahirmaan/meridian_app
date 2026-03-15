@@ -35,7 +35,6 @@ import {
 } from "../ui/sidebar";
 import { cn } from "../../lib/utils";
 import { SettingsPanel } from "./SettingsPanel";
-import { AccountPanel } from "./AccountPanel";
 import { Tooltip } from "../ui/Tooltip";
 
 interface Chat {
@@ -1091,12 +1090,17 @@ function ProfileFooter({ open, defaultModel, setDefaultModel, setPasscodeExists 
     .toUpperCase()
     .slice(0, 2);
 
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [initialSettingsTab, setInitialSettingsTab] = useState<'General' | 'Personalization' | 'Knowledge' | 'Security' | 'Account'>('General');
+
+  // Unified footer button rendering
   const footerButton = (
     <button
-      onClick={() => setDropdownOpen((p) => !p)}
+      onClick={() => setDropdownOpen(!dropdownOpen)}
       className={cn(
-        "flex items-center rounded-lg hover:bg-neutral-800 transition-colors",
-        open ? "px-2 py-2 gap-2 w-full" : "w-10 h-10 justify-center mx-auto"
+        "flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-neutral-800 transition-all group",
+        dropdownOpen && "bg-neutral-800",
+        !open && "w-10 h-10 justify-center mx-auto"
       )}
     >
       {avatarUrl ? (
@@ -1148,14 +1152,19 @@ function ProfileFooter({ open, defaultModel, setDefaultModel, setPasscodeExists 
             <button
               onClick={() => {
                 setDropdownOpen(false);
-                setAccountOpen(true);
+                setInitialSettingsTab('Account');
+                setSettingsOpen(true);
               }}
               className="w-full text-left px-3 py-2 text-sm text-neutral-200 hover:bg-neutral-800 transition-colors"
             >
               Account
             </button>
             <button
-              onClick={() => { setDropdownOpen(false); setSettingsOpen(true); }}
+              onClick={() => {
+                setDropdownOpen(false);
+                setInitialSettingsTab('General');
+                setSettingsOpen(true);
+              }}
               className="w-full text-left px-3 py-2 text-sm text-neutral-200 hover:bg-neutral-800 transition-colors"
             >
               Settings
@@ -1172,7 +1181,6 @@ function ProfileFooter({ open, defaultModel, setDefaultModel, setPasscodeExists 
                   return;
                 }
 
-                // Optional: redirect to login page
                 window.location.href = "/";
               }}
               className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-neutral-800 transition-colors"
@@ -1190,13 +1198,8 @@ function ProfileFooter({ open, defaultModel, setDefaultModel, setPasscodeExists 
             defaultModel={defaultModel}
             setDefaultModel={setDefaultModel}
             onPasscodeChange={() => setPasscodeExists(true)}
+            initialTab={initialSettingsTab}
           />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {accountOpen && (
-          <AccountPanel onClose={() => setAccountOpen(false)} />
         )}
       </AnimatePresence>
     </div>

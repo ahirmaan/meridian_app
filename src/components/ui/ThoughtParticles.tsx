@@ -109,12 +109,15 @@ export function ThoughtParticles({
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
 
+                // Handle 'accent' keyword or hex
+                const particleColor = color === 'accent' ? getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ffffff' : color;
+
                 // Convert hex to rgba for opacity
-                let fillStyle = color;
-                if (color.startsWith('#')) {
-                    const r = parseInt(color.slice(1, 3), 16);
-                    const g = parseInt(color.slice(3, 5), 16);
-                    const b = parseInt(color.slice(5, 7), 16);
+                let fillStyle = particleColor;
+                if (particleColor.startsWith('#')) {
+                    const r = parseInt(particleColor.slice(1, 3), 16);
+                    const g = parseInt(particleColor.slice(3, 5), 16);
+                    const b = parseInt(particleColor.slice(5, 7), 16);
                     fillStyle = `rgba(${r}, ${g}, ${b}, ${this.opacity})`;
                 }
 
@@ -124,7 +127,7 @@ export function ThoughtParticles({
                 // Add a very subtle glow to some particles
                 if (this.size > 1.2 * sizeMultiplier) {
                     ctx.shadowBlur = 10;
-                    ctx.shadowColor = color === "#ffffff" ? "rgba(255, 255, 255, 0.2)" : `${color}33`;
+                    ctx.shadowColor = particleColor === "#ffffff" ? "rgba(255, 255, 255, 0.2)" : `${particleColor}33`;
                 } else {
                     ctx.shadowBlur = 0;
                 }
