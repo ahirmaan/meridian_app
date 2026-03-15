@@ -22,7 +22,7 @@ async function summarizeHistory(messages: any[], apiKey: string): Promise<string
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                model: "google/gemini-2.0-flash-exp:free",
+                model: "stepfun/step-3.5-flash:free",
                 messages: [
                     { role: "system", content: "Summarize the following conversation history concisely in 50-80 tokens. Focus on user intent, key facts, and previous conclusions." },
                     { role: "user", content: JSON.stringify(messages) }
@@ -51,7 +51,7 @@ function getOptimalModel(prompt: string, requestedModel: string): string {
 
     if (isSimple) {
         console.log("[Router] Routing simple prompt to cheap model.");
-        return "google/gemini-2.0-flash-exp:free";
+        return "stepfun/step-3.5-flash:free";
     }
     return requestedModel;
 }
@@ -104,7 +104,7 @@ export async function createApp() {
     });
 
     // ✅ OpenRouter Chat Endpoint (Streaming)
-    app.post("/api/chat", async (req, res) => {
+    app.post(["/api/chat", "/chat"], async (req, res) => {
         try {
             const authHeader = req.headers.authorization;
             if (!authHeader) {
@@ -121,6 +121,17 @@ export async function createApp() {
             }
 
             let { model, messages } = req.body;
+
+            // --- MODEL VALIDATION ---
+            const VALID_MODELS = [
+                "nvidia/nemotron-3-nano-30b-a3b:free",
+                "stepfun/step-3.5-flash:free"
+            ];
+            if (!VALID_MODELS.includes(model)) {
+                console.log(`[Validation] Invalid model ${model} requested. Falling back to Nemotron.`);
+                model = "nvidia/nemotron-3-nano-30b-a3b:free";
+            }
+            // ------------------------
 
             // --- OPTIMIZATION LAYER ---
             console.log("[Optimizer] History length:", messages.length);
@@ -310,7 +321,7 @@ export async function createApp() {
     });
 
     // ✅ Generate Chat Title
-    app.post("/api/generate-title", async (req, res) => {
+    app.post(["/api/generate-title", "/generate-title"], async (req, res) => {
         try {
             const authHeader = req.headers.authorization;
             if (!authHeader) {
@@ -337,7 +348,7 @@ export async function createApp() {
                         "X-Title": "Meridian",
                     },
                     body: JSON.stringify({
-                        model: "google/gemini-2.0-flash-exp:free",
+                        model: "stepfun/step-3.5-flash:free",
                         messages: [
                             {
                                 role: "system",
@@ -364,7 +375,7 @@ export async function createApp() {
     });
 
     // ✅ Get Daily Token Usage
-    app.get("/api/usage", async (req, res) => {
+    app.get(["/api/usage", "/usage"], async (req, res) => {
         try {
             const authHeader = req.headers.authorization;
             if (!authHeader) {

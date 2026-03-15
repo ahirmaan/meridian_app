@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { X, FolderGit2, Users, Lock, Bot, Info, Save, Sparkles } from "lucide-react";
 import React, { useState } from "react";
 import { Tooltip } from "../ui/Tooltip";
+import { AVAILABLE_MODELS } from "../../lib/models";
 import { updateProjectRules } from "../../lib/chatService";
 
 interface ProjectDetailsPanelProps {
@@ -117,7 +118,12 @@ export function ProjectDetailsPanel({
                         <div className="flex flex-col gap-2">
                             <span className="text-[10px] text-neutral-400 uppercase tracking-widest font-bold opacity-70">Base Model</span>
                             <div className="flex items-center gap-2 text-sm text-neutral-200 bg-neutral-900/50 px-3 py-2.5 rounded-lg border border-neutral-800/50 truncate font-medium">
-                                <span className="truncate">{project.default_model || "Default"}</span>
+                                <span className="truncate">
+                                    {(() => {
+                                        const model = AVAILABLE_MODELS.find(m => m.id === project.default_model);
+                                        return model ? model.label : (project.default_model ? "Custom / Legacy" : "Default");
+                                    })()}
+                                </span>
                             </div>
                         </div>
                     </div>

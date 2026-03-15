@@ -9,7 +9,6 @@ export function getModelLogoSrc(identifier: string): string | null {
     if (id.includes("llama") || id.includes("meta")) return "/meta-logo.png";
     if (id.includes("nvidia") || id.includes("nemotron")) return "/nvidia-logo.png";
     if (id.includes("qwen")) return "/qwen-logo.png";
-    if (id.includes("google") || id.includes("gemini") || id.includes("gemma")) return "/google-logo.png";
     if (id.includes("stepfun")) return "/stepfun-logo.png";
 
     return null; // No logo available
