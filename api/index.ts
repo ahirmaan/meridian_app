@@ -22,7 +22,7 @@ async function summarizeHistory(messages: any[], apiKey: string): Promise<string
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                model: "google/gemini-2.0-flash:free",
+                model: "google/gemini-2.0-flash-exp:free",
                 messages: [
                     { role: "system", content: "Summarize the following conversation history concisely in 50-80 tokens. Focus on user intent, key facts, and previous conclusions." },
                     { role: "user", content: JSON.stringify(messages) }
@@ -51,7 +51,7 @@ function getOptimalModel(prompt: string, requestedModel: string): string {
 
     if (isSimple) {
         console.log("[Router] Routing simple prompt to cheap model.");
-        return "google/gemini-2.0-flash:free";
+        return "google/gemini-2.0-flash-exp:free";
     }
     return requestedModel;
 }
@@ -337,7 +337,7 @@ export async function createApp() {
                         "X-Title": "Meridian",
                     },
                     body: JSON.stringify({
-                        model: "google/gemini-2.5-flash:free",
+                        model: "google/gemini-2.0-flash-exp:free",
                         messages: [
                             {
                                 role: "system",
