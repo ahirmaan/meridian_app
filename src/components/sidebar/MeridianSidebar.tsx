@@ -176,7 +176,7 @@ export function MeridianSidebar({
                 {viewingLockedFolder && isLockedFolderUnlocked ? (
                   <div className="mb-4">
                     <div className="flex items-center justify-between px-2 pb-1">
-                      <p className="text-[11px] text-neutral-600 tracking-wider uppercase flex items-center gap-1.5">
+                      <p className="text-[11px] text-neutral-400 tracking-wider uppercase flex items-center gap-1.5 font-bold opacity-80">
                         <Lock className="w-2.5 h-2.5" /> Locked Chats
                       </p>
                       <button
@@ -210,7 +210,7 @@ export function MeridianSidebar({
                   </div>
                 ) : (
                   <>
-                    <p className="text-[11px] text-neutral-600 px-2 pb-1 tracking-wider uppercase">
+                    <p className="text-[11px] text-neutral-400 px-2 pb-1 tracking-wider uppercase font-bold opacity-80">
                       Past Chats
                     </p>
                     {regularChats.length > 0 ? (
@@ -232,7 +232,7 @@ export function MeridianSidebar({
                           />
                         ))
                     ) : (
-                      <p className="text-[11px] text-neutral-700 px-2 py-4 text-center italic">
+                      <p className="text-[11px] text-neutral-500 px-2 py-4 text-center italic opacity-60">
                         No chats found
                       </p>
                     )}
@@ -242,7 +242,7 @@ export function MeridianSidebar({
             )}
           </div>
 
-          <ProfileFooter open={open} defaultModel={defaultModel} setDefaultModel={setDefaultModel} />
+          <ProfileFooter open={open} defaultModel={defaultModel} setDefaultModel={setDefaultModel} setPasscodeExists={setPasscodeExists} />
         </SidebarBody>
       </Sidebar>
 
@@ -1040,7 +1040,7 @@ function SearchModal({
   );
 }
 
-function ProfileFooter({ open, defaultModel, setDefaultModel }: { open: boolean; defaultModel: string; setDefaultModel: (id: string) => void }) {
+function ProfileFooter({ open, defaultModel, setDefaultModel, setPasscodeExists }: { open: boolean; defaultModel: string; setDefaultModel: (id: string) => void; setPasscodeExists: (v: boolean) => void }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -1183,7 +1183,12 @@ function ProfileFooter({ open, defaultModel, setDefaultModel }: { open: boolean;
 
       <AnimatePresence>
         {settingsOpen && (
-          <SettingsPanel onClose={() => setSettingsOpen(false)} defaultModel={defaultModel} setDefaultModel={setDefaultModel} />
+          <SettingsPanel
+            onClose={() => setSettingsOpen(false)}
+            defaultModel={defaultModel}
+            setDefaultModel={setDefaultModel}
+            onPasscodeChange={() => setPasscodeExists(true)}
+          />
         )}
       </AnimatePresence>
 

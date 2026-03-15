@@ -10,12 +10,14 @@ interface SettingsPanelProps {
   onClose: () => void;
   defaultModel: string;
   setDefaultModel: (id: string) => void;
+  onPasscodeChange?: () => void;
 }
 
 export function SettingsPanel({
   onClose,
   defaultModel,
   setDefaultModel,
+  onPasscodeChange,
 }: SettingsPanelProps) {
   const [changePasscodeOpen, setChangePasscodeOpen] = useState(false);
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
@@ -63,10 +65,10 @@ export function SettingsPanel({
 
         {/* DEFAULT MODEL */}
         <div className="mb-12">
-          <h3 className="text-xs uppercase tracking-widest text-neutral-500 mb-2">
+          <h3 className="text-xs uppercase tracking-widest text-neutral-400 mb-2 font-bold opacity-70">
             Default Model
           </h3>
-          <p className="text-xs text-neutral-600 mb-4">
+          <p className="text-xs text-neutral-400 mb-4 opacity-80">
             Used when no specific model is selected for a chat.
           </p>
 
@@ -81,10 +83,10 @@ export function SettingsPanel({
                   return logo ? <img src={logo} alt="" className="w-5 h-5 object-contain flex-shrink-0" /> : null;
                 })()}
                 <div className="flex flex-col">
-                  <span className="text-white text-sm">
+                  <span className="text-white text-sm font-medium">
                     {AVAILABLE_MODELS.find((m) => m.id === defaultModel)?.label || "Select model"}
                   </span>
-                  <span className="text-[11px] text-neutral-500">
+                  <span className="text-[11px] text-neutral-400 opacity-80">
                     {AVAILABLE_MODELS.find((m) => m.id === defaultModel)?.provider}
                   </span>
                 </div>
@@ -138,16 +140,16 @@ export function SettingsPanel({
 
         {/* PRIVACY */}
         <div>
-          <h3 className="text-xs uppercase tracking-widest text-neutral-500 mb-4">
+          <h3 className="text-xs uppercase tracking-widest text-neutral-400 mb-4 font-bold opacity-70">
             Privacy
           </h3>
 
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-neutral-300">
+              <span className="text-sm text-neutral-300 font-medium">
                 Locked Folder
               </span>
-              <span className="text-xs text-neutral-500">
+              <span className="text-xs text-neutral-400 opacity-80">
                 {passcodeExists ? "Configured" : "Not set"}
               </span>
             </div>
@@ -167,6 +169,7 @@ export function SettingsPanel({
         {changePasscodeOpen && (
           <ChangePasscodeModal
             onClose={() => setChangePasscodeOpen(false)}
+            onSuccess={() => onPasscodeChange?.()}
           />
         )}
       </AnimatePresence>
@@ -178,8 +181,10 @@ export function SettingsPanel({
 
 function ChangePasscodeModal({
   onClose,
+  onSuccess,
 }: {
   onClose: () => void;
+  onSuccess?: () => void;
 }) {
   const [current, setCurrent] = useState("");
   const [newPass, setNewPass] = useState("");
@@ -210,6 +215,7 @@ function ChangePasscodeModal({
 
     localStorage.setItem("meridian_passcode", newPass);
     setSuccess(true);
+    onSuccess?.();
 
     setTimeout(() => {
       onClose();

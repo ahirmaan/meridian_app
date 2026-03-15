@@ -852,7 +852,7 @@ export default function ChatPage() {
                         pinnedModel={pinnedModel}
                         setPinnedModel={setPinnedModel}
                       />
-                      <p className="text-[11px] text-neutral-500 text-center mt-3 mb-1 pointer-events-none">
+                      <p className="text-[11px] text-neutral-400 text-center mt-3 mb-1 pointer-events-none opacity-80">
                         AI can make mistakes. Double-check the information.
                       </p>
                     </div>

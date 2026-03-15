@@ -60,7 +60,7 @@ export function ChatSettingsPanel({
                         <h2 className="text-white font-semibold text-lg tracking-tight">
                             Chat Settings
                         </h2>
-                        <p className="text-[10px] text-neutral-500 uppercase tracking-widest font-medium">Configure session</p>
+                        <p className="text-[10px] text-neutral-400 uppercase tracking-widest font-bold opacity-70">Configure session</p>
                     </div>
                     <button
                         onClick={onClose}
@@ -75,7 +75,7 @@ export function ChatSettingsPanel({
 
                     {/* Main Toggles */}
                     <div className="flex flex-col gap-4">
-                        <h3 className="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">Preferences</h3>
+                        <h3 className="text-[10px] text-neutral-400 uppercase tracking-widest font-bold opacity-80">Preferences</h3>
 
                         {/* Pin Chat */}
                         <button
@@ -88,7 +88,7 @@ export function ChatSettingsPanel({
                                 </div>
                                 <div className="text-left">
                                     <p className="text-sm font-semibold text-white">Pin Chat</p>
-                                    <p className="text-[11px] text-neutral-500">Keep at the top of sidebar</p>
+                                    <p className="text-[11px] text-neutral-400 opacity-80">Keep at the top of sidebar</p>
                                 </div>
                             </div>
                             <div className={`w-10 h-6 rounded-full p-1 transition-colors ${isPinned ? 'bg-amber-500' : 'bg-neutral-800'}`}>
