@@ -6,19 +6,29 @@ export type AutoLockTimer = 'Off' | '1m' | '5m' | '15m';
 export interface AppSettings {
     particleDensity: number;
     motionSensitivity: number;
+    particleColor: string;
+    particleSpeed: number;
+    particleSize: number;
     glassmorphismEnabled: boolean;
     globalPersona: string;
     streamingSpeed: StreamingSpeed;
     autoLockTimer: AutoLockTimer;
+    accentColor: string;
+    fontSize: 'Small' | 'Medium' | 'Large';
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
     particleDensity: 1.0,
     motionSensitivity: 20,
+    particleColor: '#ffffff',
+    particleSpeed: 1.0,
+    particleSize: 1.0,
     glassmorphismEnabled: true,
     globalPersona: '',
     streamingSpeed: 'Normal',
     autoLockTimer: 'Off',
+    accentColor: '#3b82f6', // Cyber Blue
+    fontSize: 'Medium',
 };
 
 export function useSettings() {

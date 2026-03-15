@@ -11,15 +11,26 @@
     from {
       background-position: 50% 50%, 50% 50%;
     }
+
     to {
       background-position: 350% 50%, 350% 50%;
     }
   }
 
   @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
+
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+
+    25% {
+      transform: translateX(-5px);
+    }
+
+    75% {
+      transform: translateX(5px);
+    }
   }
 
   --color-background: hsl(var(--background));
@@ -34,7 +45,7 @@
   --color-secondary-foreground: hsl(var(--secondary-foreground));
   --color-muted: hsl(var(--muted));
   --color-muted-foreground: hsl(var(--muted-foreground));
-  --color-accent: hsl(var(--accent));
+  --color-accent: var(--accent, hsl(var(--accent-hsl)));
   --color-accent-foreground: hsl(var(--accent-foreground));
   --color-destructive: hsl(var(--destructive));
   --color-destructive-foreground: hsl(var(--destructive-foreground));
@@ -44,6 +55,7 @@
 }
 
 :root {
+  --accent-hsl: 240 4.8% 95.9%;
   --background: 0 0% 100%;
   --foreground: 240 10% 3.9%;
   --card: 0 0% 100%;
@@ -92,6 +104,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -101,10 +114,12 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
   .no-glass * {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
@@ -135,5 +150,5 @@
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(120,120,120,0.35) transparent;
+  scrollbar-color: rgba(120, 120, 120, 0.35) transparent;
 }

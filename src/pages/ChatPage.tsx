@@ -101,8 +101,19 @@ export default function ChatPage() {
     setPasscodeExists(!!savedPasscode);
     setStoredPasscode(savedPasscode);
     setGreeting(GREETINGS[Math.floor(Math.random() * GREETINGS.length)]);
-
   }, []);
+
+  // Update Body styles based on settings
+  useEffect(() => {
+    if (settings.glassmorphismEnabled) {
+      document.body.classList.remove("no-glass");
+    } else {
+      document.body.classList.add("no-glass");
+    }
+
+    // Set accent color as a CSS variable
+    document.documentElement.style.setProperty('--accent', settings.accentColor);
+  }, [settings.glassmorphismEnabled, settings.accentColor]);
 
   // Initialize User
   useEffect(() => {
@@ -756,6 +767,9 @@ export default function ChatPage() {
                   <ThoughtParticles
                     density={settings.particleDensity}
                     sensitivity={settings.motionSensitivity}
+                    color={settings.particleColor}
+                    speedMultiplier={settings.particleSpeed}
+                    sizeMultiplier={settings.particleSize}
                   />
                   <div className="w-full max-w-[800px] flex flex-col items-center relative z-10">
                     {authError && (

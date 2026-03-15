@@ -6,9 +6,18 @@ import { motion } from "framer-motion";
 interface ThoughtParticlesProps {
     density?: number;
     sensitivity?: number;
+    color?: string;
+    speedMultiplier?: number;
+    sizeMultiplier?: number;
 }
 
-export function ThoughtParticles({ density = 1.0, sensitivity = 20 }: ThoughtParticlesProps) {
+export function ThoughtParticles({
+    density = 1.0,
+    sensitivity = 20,
+    color = "#ffffff",
+    speedMultiplier = 1.0,
+    sizeMultiplier = 1.0
+}: ThoughtParticlesProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -51,13 +60,13 @@ export function ThoughtParticles({ density = 1.0, sensitivity = 20 }: ThoughtPar
                 this.y = Math.random() * canvas.height;
                 this.originX = this.x;
                 this.originY = this.y;
-                this.size = Math.random() * 1.5 + 0.5;
-                this.speedX = (Math.random() - 0.5) * 0.2;
-                this.speedY = -(Math.random() * 0.3 + 0.1);
+                this.size = (Math.random() * 1.5 + 0.5) * sizeMultiplier;
+                this.speedX = (Math.random() - 0.5) * 0.2 * speedMultiplier;
+                this.speedY = -(Math.random() * 0.3 + 0.1) * speedMultiplier;
                 this.vx = 0;
                 this.vy = 0;
                 this.opacity = Math.random() * 0.5;
-                this.fadeSpeed = Math.random() * 0.005 + 0.002;
+                this.fadeSpeed = (Math.random() * 0.005 + 0.002) * speedMultiplier;
                 this.density = (Math.random() * 20) + 1;
             }
 
@@ -99,13 +108,23 @@ export function ThoughtParticles({ density = 1.0, sensitivity = 20 }: ThoughtPar
                 if (!ctx) return;
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+
+                // Convert hex to rgba for opacity
+                let fillStyle = color;
+                if (color.startsWith('#')) {
+                    const r = parseInt(color.slice(1, 3), 16);
+                    const g = parseInt(color.slice(3, 5), 16);
+                    const b = parseInt(color.slice(5, 7), 16);
+                    fillStyle = `rgba(${r}, ${g}, ${b}, ${this.opacity})`;
+                }
+
+                ctx.fillStyle = fillStyle;
                 ctx.fill();
 
                 // Add a very subtle glow to some particles
-                if (this.size > 1.2) {
+                if (this.size > 1.2 * sizeMultiplier) {
                     ctx.shadowBlur = 10;
-                    ctx.shadowColor = "rgba(255, 255, 255, 0.2)";
+                    ctx.shadowColor = color === "#ffffff" ? "rgba(255, 255, 255, 0.2)" : `${color}33`;
                 } else {
                     ctx.shadowBlur = 0;
                 }
@@ -114,9 +133,11 @@ export function ThoughtParticles({ density = 1.0, sensitivity = 20 }: ThoughtPar
 
         const init = () => {
             particles = [];
-            const baseParticleCount = Math.floor((canvas.width * canvas.height) / 15000);
+            // Made density significantly more noticeable
+            const baseDensity = 8000;
+            const baseParticleCount = Math.floor((canvas.width * canvas.height) / baseDensity);
             const particleCount = Math.floor(baseParticleCount * density);
-            for (let i = 0; i < Math.min(particleCount, 250); i++) {
+            for (let i = 0; i < Math.min(particleCount, 500); i++) {
                 particles.push(new Particle());
             }
         };
@@ -141,7 +162,7 @@ export function ThoughtParticles({ density = 1.0, sensitivity = 20 }: ThoughtPar
             window.removeEventListener("mousemove", handleMouseMove);
             cancelAnimationFrame(animationFrameId);
         };
-    }, []);
+    }, [density, sensitivity, color, speedMultiplier, sizeMultiplier]);
 
     return (
         <motion.canvas
