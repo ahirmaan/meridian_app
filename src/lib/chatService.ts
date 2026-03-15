@@ -1,5 +1,12 @@
 import { supabase, supabaseEnabled } from "./supabase";
 
+export interface Attachment {
+    id: string;
+    type: string;
+    name: string;
+    data: string;
+}
+
 export interface DbChat {
     id: string;
     user_id: string;
@@ -28,6 +35,16 @@ export interface DbMessage {
     chat_id: string;
     role: "user" | "assistant";
     content: string;
+    attachments?: Attachment[];
+    created_at: string;
+}
+
+export interface ProjectFile {
+    id: string;
+    project_id: string;
+    name: string;
+    type: string;
+    data: string;
     created_at: string;
 }
 
@@ -174,12 +191,18 @@ export async function loadMessages(chatId: string): Promise<DbMessage[]> {
 export async function saveMessage(
     chatId: string,
     role: "user" | "assistant",
-    content: string
+    content: string,
+    attachments?: Attachment[]
 ): Promise<DbMessage | null> {
     if (!supabaseEnabled || !supabase) return null;
     const { data, error } = await supabase
         .from("messages")
-        .insert({ chat_id: chatId, role, content })
+        .insert({
+            chat_id: chatId,
+            role,
+            content,
+            attachments: attachments || []
+        })
         .select()
         .single();
 
@@ -193,4 +216,47 @@ export async function deleteMessagesForChat(chatId: string) {
     if (!supabaseEnabled || !supabase) return;
     const { error } = await supabase.from("messages").delete().eq("chat_id", chatId);
     if (error) console.error("deleteMessagesForChat error:", error.message);
+}
+
+// ── Project Files (Library) ───────────────────────
+
+export async function loadProjectFiles(projectId: string): Promise<ProjectFile[]> {
+    if (!supabaseEnabled || !supabase) return [];
+    const { data, error } = await supabase
+        .from("project_files")
+        .select("*")
+        .eq("project_id", projectId)
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        console.error("loadProjectFiles error:", error.message);
+        return [];
+    }
+    return data || [];
+}
+
+export async function addProjectFile(
+    projectId: string,
+    name: string,
+    type: string,
+    data: string
+): Promise<ProjectFile | null> {
+    if (!supabaseEnabled || !supabase) return null;
+    const { data: result, error } = await supabase
+        .from("project_files")
+        .insert({ project_id: projectId, name, type, data })
+        .select()
+        .single();
+
+    if (error) {
+        console.error("addProjectFile error:", error.message);
+        return null;
+    }
+    return result;
+}
+
+export async function deleteProjectFile(fileId: string) {
+    if (!supabaseEnabled || !supabase) return;
+    const { error } = await supabase.from("project_files").delete().eq("id", fileId);
+    if (error) console.error("deleteProjectFile error:", error.message);
 }

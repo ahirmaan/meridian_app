@@ -166,13 +166,13 @@ export async function createApp() {
                 const summary = await summarizeHistory(toSummarize, process.env.OPENROUTER_API_KEY || "");
                 const remaining = messages.slice(messages.length - 8);
                 messages = [
-                    { role: "system", content: `Conversation summary: ${summary}\n\nStrictly keep your response under 250 words to ensure you can fully finish your thought. Be concise but complete.` },
+                    { role: "system", content: `Conversation summary: ${summary}\n\nPlease continue the conversation based on this summary.` },
                     ...remaining
                 ];
             } else {
                 // Ensure concise instruction is always present if not summarizing
                 if (messages[0]?.role !== 'system') {
-                    messages.unshift({ role: "system", content: "Respond as a helpful AI assistant. Be concise and complete." });
+                    messages.unshift({ role: "system", content: "Respond as a helpful AI assistant." });
                 }
             }
 

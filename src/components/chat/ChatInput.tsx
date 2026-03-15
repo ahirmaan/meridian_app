@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
 import React from "react";
-import { ArrowUpIcon, X, Paperclip, AlertTriangle } from "lucide-react";
+import { ArrowUpIcon, X, Paperclip, AlertTriangle, File as FileIcon } from "lucide-react";
 import { Textarea } from "../ui/textarea";
 import { cn } from "../../lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,6 +24,7 @@ interface ChatInputProps {
   defaultModel: string;
   pinnedModel: string | null;
   setPinnedModel: (model: string | null) => void;
+  projectFiles?: any[];
 }
 
 function useAutoResizeTextarea({ minHeight, maxHeight }: { minHeight: number; maxHeight?: number }) {
@@ -60,12 +61,17 @@ export const ChatInput = forwardRef(({
   onChange: controlledOnChange,
   defaultModel,
   pinnedModel,
-  setPinnedModel
+  setPinnedModel,
+  projectFiles = []
 }: ChatInputProps, ref) => {
   const [internalValue, setInternalValue] = useState("");
   const value = controlledValue !== undefined ? controlledValue : internalValue;
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [fileMentionSearch, setFileMentionSearch] = useState("");
+  const [showFileMentions, setShowFileMentions] = useState(false);
+  const [fileSelectedIndex, setFileSelectedIndex] = useState(0);
 
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight: isNewChat ? 100 : 56,
@@ -95,6 +101,10 @@ export const ChatInput = forwardRef(({
   const filteredModels = availableModels.filter(m =>
     m.label.toLowerCase().includes(mentionSearch.toLowerCase()) ||
     m.provider.toLowerCase().includes(mentionSearch.toLowerCase())
+  );
+
+  const filteredFiles = projectFiles.filter(f =>
+    f.name.toLowerCase().includes(fileMentionSearch.toLowerCase())
   );
 
   const handleSend = () => {
@@ -172,6 +182,27 @@ export const ChatInput = forwardRef(({
     textareaRef.current?.focus();
   };
 
+  const insertFileMention = (file: any) => {
+    const parts = value.split("#");
+    parts.pop();
+    const newValue = parts.join("#"); // Remove the #query part
+    setValue(newValue);
+    setShowFileMentions(false);
+
+    // Add to attachments if not already there
+    setAttachments(prev => {
+      if (prev.find(a => a.id === file.id)) return prev;
+      return [...prev, {
+        id: file.id,
+        type: file.type,
+        name: file.name,
+        data: file.data
+      }];
+    });
+
+    textareaRef.current?.focus();
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (showMentions) {
       if (e.key === "ArrowDown") {
@@ -187,6 +218,24 @@ export const ChatInput = forwardRef(({
         }
       } else if (e.key === "Escape") {
         setShowMentions(false);
+      }
+      return;
+    }
+
+    if (showFileMentions) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setFileSelectedIndex((prev) => (prev + 1) % filteredFiles.length);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setFileSelectedIndex((prev) => (prev - 1 + filteredFiles.length) % filteredFiles.length);
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (filteredFiles[fileSelectedIndex]) {
+          insertFileMention(filteredFiles[fileSelectedIndex]);
+        }
+      } else if (e.key === "Escape") {
+        setShowFileMentions(false);
       }
       return;
     }
@@ -207,10 +256,17 @@ export const ChatInput = forwardRef(({
 
     if (lastWord.startsWith("@")) {
       setShowMentions(true);
+      setShowFileMentions(false);
       setMentionSearch(lastWord.slice(1));
       setSelectedIndex(0);
+    } else if (lastWord.startsWith("#")) {
+      setShowFileMentions(true);
+      setShowMentions(false);
+      setFileMentionSearch(lastWord.slice(1));
+      setFileSelectedIndex(0);
     } else {
       setShowMentions(false);
+      setShowFileMentions(false);
     }
   };
 
@@ -264,7 +320,7 @@ export const ChatInput = forwardRef(({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="absolute bottom-full mb-2 left-0 w-[220px] bg-neutral-900 border border-neutral-800 rounded-lg shadow-2xl z-50"
+              className="absolute bottom-full mb-2 left-0 w-[220px] bg-neutral-900 border border-neutral-800 rounded-lg shadow-2xl z-50 overflow-hidden"
             >
               {filteredModels.map((m, i) => (
                 <button
@@ -277,13 +333,47 @@ export const ChatInput = forwardRef(({
                     i === selectedIndex ? "bg-neutral-800 text-white" : "text-neutral-400"
                   )}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-xs">
                     {(() => {
                       const logo = getModelLogoSrc(m.id);
-                      return logo ? <img src={logo} alt="" className="w-4 h-4 object-contain flex-shrink-0" /> : null;
+                      return logo ? <img src={logo} alt="" className="w-3.5 h-3.5 object-contain flex-shrink-0" /> : null;
                     })()}
-                    <span>{m.label}</span>
+                    <span className="font-medium">{m.label}</span>
                   </div>
+                </button>
+              ))}
+            </motion.div>
+          )}
+
+          {showFileMentions && filteredFiles.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="absolute bottom-full mb-2 left-0 w-[240px] bg-neutral-900 border border-neutral-800 rounded-lg shadow-2xl z-50 overflow-hidden max-h-[300px] overflow-y-auto no-scrollbar"
+            >
+              <div className="px-3 py-2 border-b border-neutral-800 bg-neutral-900/50">
+                <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Project Library</span>
+              </div>
+              {filteredFiles.map((f, i) => (
+                <button
+                  type="button"
+                  key={f.id}
+                  onClick={() => insertFileMention(f)}
+                  onMouseEnter={() => setFileSelectedIndex(i)}
+                  className={cn(
+                    "w-full text-left px-3 py-2 text-sm transition-colors flex items-center gap-2",
+                    i === fileSelectedIndex ? "bg-neutral-800 text-white" : "text-neutral-400 hover:text-neutral-200"
+                  )}
+                >
+                  {f.type.startsWith("image/") ? (
+                    <img src={f.data} alt="" className="w-5 h-5 rounded object-cover border border-neutral-700" />
+                  ) : (
+                    <div className="w-5 h-5 rounded bg-neutral-800 border border-neutral-700 flex items-center justify-center">
+                      <FileIcon className="w-3 h-3" />
+                    </div>
+                  )}
+                  <span className="text-xs truncate font-medium">{f.name}</span>
                 </button>
               ))}
             </motion.div>

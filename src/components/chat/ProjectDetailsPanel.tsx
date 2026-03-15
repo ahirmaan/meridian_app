@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Tooltip } from "../ui/Tooltip";
 import { AVAILABLE_MODELS } from "../../lib/models";
 import { updateProjectRules } from "../../lib/chatService";
+import { FileLibrary } from "./FileLibrary";
 
 interface ProjectDetailsPanelProps {
     onClose: () => void;
@@ -143,6 +144,10 @@ export function ProjectDetailsPanel({
                             {project.multi_model ? 'Enabled' : 'Disabled'}
                         </div>
                     </div>
+
+                    <div className="w-full h-px bg-neutral-800/50" />
+
+                    <FileLibrary projectId={project.id} />
 
                 </div>
             </motion.div>

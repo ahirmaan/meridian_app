@@ -27,6 +27,8 @@ import {
   saveMessage,
   updateChatTimestamp,
   deleteMessagesForChat,
+  loadProjectFiles,
+  type ProjectFile
 } from "../lib/chatService";
 
 let msgCounter = 0;
@@ -66,6 +68,7 @@ export default function ChatPage() {
   });
 
   const [passcodeExists, setPasscodeExists] = useState(false);
+  const [projectFiles, setProjectFiles] = useState<ProjectFile[]>([]);
   const [storedPasscode, setStoredPasscode] = useState<string | null>(null);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -378,7 +381,7 @@ export default function ChatPage() {
     setLoading(true);
 
     // Save user message to DB
-    await saveMessage(currentChatId, "user", content);
+    await saveMessage(currentChatId, "user", content, attachments);
     await updateChatTimestamp(currentChatId);
 
     try {
@@ -637,9 +640,19 @@ export default function ChatPage() {
               role: m.role as "user" | "assistant",
               content: content,
               reasoning: reasoning,
+              attachments: m.attachments,
             };
           });
           setMessages(mapped);
+
+          // If project, load project files for ChatInput mentions
+          const chatDetails = [...regularChats, ...lockedChats].find(c => c.id === id);
+          if (chatDetails?.type === "project") {
+            const files = await loadProjectFiles(id);
+            setProjectFiles(files);
+          } else {
+            setProjectFiles([]);
+          }
         }}
         onRenameChat={handleRenameChat}
         onDeleteChat={handleDeleteChat}
@@ -816,6 +829,7 @@ export default function ChatPage() {
                         defaultModel={defaultModel}
                         pinnedModel={pinnedModel}
                         setPinnedModel={setPinnedModel}
+                        projectFiles={projectFiles}
                       />
                     </div>
                   </div>
@@ -879,6 +893,7 @@ export default function ChatPage() {
                         defaultModel={defaultModel}
                         pinnedModel={pinnedModel}
                         setPinnedModel={setPinnedModel}
+                        projectFiles={projectFiles}
                       />
                       <p className="text-[11px] text-neutral-400 text-center mt-3 mb-1 pointer-events-none opacity-80">
                         AI can make mistakes. Double-check the information.
