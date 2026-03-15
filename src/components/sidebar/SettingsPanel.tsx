@@ -266,13 +266,28 @@ export function SettingsPanel({
                         </div>
 
                         <div className="pt-4 w-full max-w-[340px]">
-                          <div className="bg-neutral-950/60 border border-neutral-800/50 rounded-2xl p-5 flex flex-col gap-4">
+                          <div className="bg-neutral-950/60 border border-neutral-800/50 rounded-2xl p-5 flex flex-col gap-4 text-left">
                             <div className="flex justify-between items-center text-sm">
                               <span className="text-neutral-500 font-medium">Subscription</span>
                               <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/5 rounded-full border border-white/10">
-                                <Sparkles className="w-3 h-3 text-white" />
-                                <span className="text-white font-bold uppercase tracking-wider text-[10px]">Explorer</span>
+                                {user?.user_metadata?.subscription === 'paid' ? (
+                                  <>
+                                    <Zap className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                                    <span className="text-white font-bold uppercase tracking-wider text-[10px]">Paid</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Sparkles className="w-3 h-3 text-white" />
+                                    <span className="text-white font-bold uppercase tracking-wider text-[10px]">Free</span>
+                                  </>
+                                )}
                               </div>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-neutral-500 font-medium">Joined</span>
+                              <span className="text-white font-semibold text-xs">
+                                {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'March 2024'}
+                              </span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
                               <span className="text-neutral-500 font-medium">Status</span>
