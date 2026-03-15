@@ -1044,7 +1044,7 @@ function SearchModal({
 function ProfileFooter({ open, defaultModel, setDefaultModel, setPasscodeExists }: { open: boolean; defaultModel: string; setDefaultModel: (id: string) => void; setPasscodeExists: (v: boolean) => void }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [accountOpen, setAccountOpen] = useState(false);
+  const [initialSettingsTab, setInitialSettingsTab] = useState<'General' | 'Personalization' | 'Knowledge' | 'Security' | 'Account'>('General');
 
   const [user, setUser] = useState<any>(null);
   const ref = useRef<HTMLDivElement>(null);
@@ -1089,9 +1089,6 @@ function ProfileFooter({ open, defaultModel, setDefaultModel, setPasscodeExists 
     .join("")
     .toUpperCase()
     .slice(0, 2);
-
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [initialSettingsTab, setInitialSettingsTab] = useState<'General' | 'Personalization' | 'Knowledge' | 'Security' | 'Account'>('General');
 
   // Unified footer button rendering
   const footerButton = (
