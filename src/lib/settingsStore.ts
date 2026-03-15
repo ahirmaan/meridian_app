@@ -52,6 +52,13 @@ export function useSettings() {
         } else {
             document.body.classList.add('no-glass');
         }
+
+        // Apply accent color as a CSS variable
+        document.documentElement.style.setProperty('--accent', settings.accentColor);
+
+        // Apply font size class to body
+        document.body.classList.remove('text-small', 'text-medium', 'text-large');
+        document.body.classList.add(`text-${settings.fontSize.toLowerCase()}`);
     }, [settings]);
 
     const updateSettings = (updates: Partial<AppSettings>) => {

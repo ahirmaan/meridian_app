@@ -28,9 +28,19 @@ export function SettingsPanel({
   initialTab = 'General',
 }: SettingsPanelProps) {
   const { settings, updateSettings } = useSettings();
+  const [draftSettings, setDraftSettings] = useState(settings);
   const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
   const [changePasscodeOpen, setChangePasscodeOpen] = useState(false);
   const passcodeExists = !!localStorage.getItem("meridian_passcode");
+
+  const updateDraft = (updates: Partial<typeof settings>) => {
+    setDraftSettings(prev => ({ ...prev, ...updates }));
+  };
+
+  const handleSave = () => {
+    updateSettings(draftSettings);
+    onClose();
+  };
 
   const handleClearCache = () => {
     if (confirm("Are you sure? This will wipe all local chat history and settings.")) {
@@ -143,8 +153,8 @@ export function SettingsPanel({
                             {(['Normal', 'Fast', 'Instant'] as StreamingSpeed[]).map((speed) => (
                               <button
                                 key={speed}
-                                onClick={() => updateSettings({ streamingSpeed: speed })}
-                                className={`py-2 text-xs font-bold rounded-lg transition-all ${settings.streamingSpeed === speed ? 'bg-white text-black shadow-lg shadow-black/40' : 'text-neutral-500 hover:text-neutral-300'}`}
+                                onClick={() => updateDraft({ streamingSpeed: speed })}
+                                className={`py-2 text-xs font-bold rounded-lg transition-all ${draftSettings.streamingSpeed === speed ? 'bg-white text-black shadow-lg shadow-black/40' : 'text-neutral-500 hover:text-neutral-300'}`}
                               >
                                 {speed}
                               </button>
@@ -163,8 +173,8 @@ export function SettingsPanel({
                             {ACCENT_COLORS.map((c) => (
                               <button
                                 key={c.name}
-                                onClick={() => updateSettings({ accentColor: c.color })}
-                                className={`w-8 h-8 rounded-full border-2 transition-all ${settings.accentColor === c.color ? 'border-white scale-110' : 'border-transparent opacity-60 hover:opacity-100 hover:scale-105'
+                                onClick={() => updateDraft({ accentColor: c.color })}
+                                className={`w-8 h-8 rounded-full border-2 transition-all ${draftSettings.accentColor === c.color ? 'border-white scale-110' : 'border-transparent opacity-60 hover:opacity-100 hover:scale-105'
                                   }`}
                                 style={{ backgroundColor: c.color }}
                                 title={c.name}
@@ -180,10 +190,10 @@ export function SettingsPanel({
                               <span className="text-[11px] text-neutral-500">Enable frosted glass effects across the UI.</span>
                             </div>
                             <button
-                              onClick={() => updateSettings({ glassmorphismEnabled: !settings.glassmorphismEnabled })}
-                              className={`w-10 h-5 rounded-full transition-colors relative flex items-center ${settings.glassmorphismEnabled ? 'bg-white' : 'bg-neutral-800'}`}
+                              onClick={() => updateDraft({ glassmorphismEnabled: !draftSettings.glassmorphismEnabled })}
+                              className={`w-10 h-5 rounded-full transition-colors relative flex items-center ${draftSettings.glassmorphismEnabled ? 'bg-white' : 'bg-neutral-800'}`}
                             >
-                              <div className={`w-3.5 h-3.5 rounded-full transition-transform ${settings.glassmorphismEnabled ? 'translate-x-5.5 bg-black' : 'translate-x-1 bg-neutral-500'}`} />
+                              <div className={`w-3.5 h-3.5 rounded-full transition-transform ${draftSettings.glassmorphismEnabled ? 'translate-x-5.5 bg-black' : 'translate-x-1 bg-neutral-500'}`} />
                             </button>
                           </div>
                         </section>
@@ -202,10 +212,10 @@ export function SettingsPanel({
                                 {PARTICLE_COLORS.map((c) => (
                                   <button
                                     key={c.name}
-                                    onClick={() => updateSettings({ particleColor: c.color })}
-                                    className={`w-6 h-6 rounded-full border border-white/20 transition-all ${settings.particleColor === c.color ? 'scale-125 ring-2 ring-white/50 ring-offset-2 ring-offset-neutral-900 shadow-xl' : 'opacity-40 hover:opacity-100'
+                                    onClick={() => updateDraft({ particleColor: c.color })}
+                                    className={`w-6 h-6 rounded-full border border-white/20 transition-all ${draftSettings.particleColor === c.color ? 'scale-125 ring-2 ring-white/50 ring-offset-2 ring-offset-neutral-900 shadow-xl' : 'opacity-40 hover:opacity-100'
                                       }`}
-                                    style={{ backgroundColor: c.color === 'accent' ? settings.accentColor : c.color }}
+                                    style={{ backgroundColor: c.color === 'accent' ? draftSettings.accentColor : c.color }}
                                     title={c.name}
                                   />
                                 ))}
@@ -216,12 +226,12 @@ export function SettingsPanel({
                             <div className="space-y-3">
                               <div className="flex justify-between text-[11px] uppercase tracking-wider text-neutral-500 font-bold">
                                 <span>Density</span>
-                                <span>{(settings.particleDensity * 100).toFixed(0)}%</span>
+                                <span>{(draftSettings.particleDensity * 100).toFixed(0)}%</span>
                               </div>
                               <input
                                 type="range" min="0.1" max="5.0" step="0.1"
-                                value={settings.particleDensity}
-                                onChange={(e) => updateSettings({ particleDensity: parseFloat(e.target.value) })}
+                                value={draftSettings.particleDensity}
+                                onChange={(e) => updateDraft({ particleDensity: parseFloat(e.target.value) })}
                                 className="w-full accent-white h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer"
                               />
                             </div>
@@ -230,12 +240,12 @@ export function SettingsPanel({
                             <div className="space-y-3">
                               <div className="flex justify-between text-[11px] uppercase tracking-wider text-neutral-500 font-bold">
                                 <span>Speed</span>
-                                <span>{settings.particleSpeed.toFixed(1)}x</span>
+                                <span>{draftSettings.particleSpeed.toFixed(1)}x</span>
                               </div>
                               <input
                                 type="range" min="0.1" max="3.0" step="0.1"
-                                value={settings.particleSpeed}
-                                onChange={(e) => updateSettings({ particleSpeed: parseFloat(e.target.value) })}
+                                value={draftSettings.particleSpeed}
+                                onChange={(e) => updateDraft({ particleSpeed: parseFloat(e.target.value) })}
                                 className="w-full accent-white h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer"
                               />
                             </div>
@@ -244,12 +254,12 @@ export function SettingsPanel({
                             <div className="space-y-3">
                               <div className="flex justify-between text-[11px] uppercase tracking-wider text-neutral-500 font-bold">
                                 <span>Particle Size</span>
-                                <span>{settings.particleSize.toFixed(1)}x</span>
+                                <span>{draftSettings.particleSize.toFixed(1)}x</span>
                               </div>
                               <input
                                 type="range" min="0.1" max="5.0" step="0.1"
-                                value={settings.particleSize}
-                                onChange={(e) => updateSettings({ particleSize: parseFloat(e.target.value) })}
+                                value={draftSettings.particleSize}
+                                onChange={(e) => updateDraft({ particleSize: parseFloat(e.target.value) })}
                                 className="w-full accent-white h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer"
                               />
                             </div>
@@ -272,8 +282,8 @@ export function SettingsPanel({
                             These instructions are injected into the "System Prompt" of every AI model you talk to, across all chats and projects.
                           </p>
                           <textarea
-                            value={settings.globalPersona}
-                            onChange={(e) => updateSettings({ globalPersona: e.target.value })}
+                            value={draftSettings.globalPersona}
+                            onChange={(e) => updateDraft({ globalPersona: e.target.value })}
                             placeholder="e.g. Always respond in Spanish, keep answers brief and professional..."
                             className="w-full h-40 bg-neutral-950 border border-neutral-800 rounded-2xl p-4 text-sm text-neutral-300 placeholder:text-neutral-700 focus:outline-none focus:ring-1 focus:ring-neutral-600 transition-all resize-none font-medium leading-relaxed"
                           />
@@ -291,14 +301,14 @@ export function SettingsPanel({
                               <span className="text-[11px] text-neutral-500">Automatically lock folders after inactivity.</span>
                             </div>
                             <CustomSelect
-                              value={settings.autoLockTimer}
+                              value={draftSettings.autoLockTimer}
                               options={[
                                 { value: 'Off', label: 'Off' },
                                 { value: '1m', label: '1 minute' },
                                 { value: '5m', label: '5 minutes' },
                                 { value: '15m', label: '15 minutes' },
                               ]}
-                              onChange={(val) => updateSettings({ autoLockTimer: val as AutoLockTimer })}
+                              onChange={(val) => updateDraft({ autoLockTimer: val as AutoLockTimer })}
                               className="w-32"
                             />
                           </div>
@@ -364,6 +374,27 @@ export function SettingsPanel({
                     )}
                   </motion.div>
                 </AnimatePresence>
+              </div>
+            </div>
+
+            {/* Sticky Footer */}
+            <div className="p-6 border-t border-neutral-800 bg-neutral-900/80 backdrop-blur-sm flex justify-between items-center">
+              <p className="text-[11px] text-neutral-500 font-medium">
+                Changes will apply instantly upon saving.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={onClose}
+                  className="px-5 py-2 rounded-xl text-sm font-semibold text-neutral-400 hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="px-6 py-2 rounded-xl bg-white text-black text-sm font-bold hover:bg-neutral-200 transition-all shadow-xl shadow-white/5 active:scale-95"
+                >
+                  Save Changes
+                </button>
               </div>
             </div>
           </div>

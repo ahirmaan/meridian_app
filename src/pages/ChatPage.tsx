@@ -103,18 +103,6 @@ export default function ChatPage() {
     setGreeting(GREETINGS[Math.floor(Math.random() * GREETINGS.length)]);
   }, []);
 
-  // Update Body styles based on settings
-  useEffect(() => {
-    if (settings.glassmorphismEnabled) {
-      document.body.classList.remove("no-glass");
-    } else {
-      document.body.classList.add("no-glass");
-    }
-
-    // Set accent color as a CSS variable
-    document.documentElement.style.setProperty('--accent', settings.accentColor);
-  }, [settings.glassmorphismEnabled, settings.accentColor]);
-
   // Initialize User
   useEffect(() => {
     const initUser = async (retries = 3) => {
