@@ -9,6 +9,7 @@ import { useSettings, StreamingSpeed, AutoLockTimer } from "../../lib/settingsSt
 import { Brain, Sparkles, Monitor, Info, Trash2, Zap, Clock, User, Palette, ShieldCheck, Type } from "lucide-react";
 import { Tooltip } from "../ui/Tooltip";
 import { CustomSelect } from "../ui/CustomSelect";
+import { supabase } from "../../lib/supabase";
 
 interface SettingsPanelProps {
   onClose: () => void;
@@ -32,6 +33,16 @@ export function SettingsPanel({
   const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
   const [changePasscodeOpen, setChangePasscodeOpen] = useState(false);
   const passcodeExists = !!localStorage.getItem("meridian_passcode");
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!supabase) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    fetchUser();
+  }, []);
 
   const updateDraft = (updates: Partial<typeof settings>) => {
     setDraftSettings(prev => ({ ...prev, ...updates }));
@@ -231,23 +242,44 @@ export function SettingsPanel({
 
                     {/* ACCOUNT TAB */}
                     {activeTab === 'Account' && (
-                      <div className="flex flex-col items-center justify-center pt-10 text-center space-y-4">
-                        <div className="w-20 h-20 rounded-full bg-neutral-800 flex items-center justify-center border border-neutral-700">
-                          <User className="w-10 h-10 text-neutral-500" />
-                        </div>
-                        <div>
-                          <h4 className="text-white font-bold text-lg tracking-tight">Meridian User</h4>
-                          <p className="text-neutral-500 text-xs mt-1 italic">Free Version v1.026.43</p>
-                        </div>
-                        <div className="pt-6 w-full max-w-[300px]">
-                          <div className="bg-neutral-950/60 border border-neutral-800/50 rounded-2xl p-4 flex flex-col gap-3">
-                            <div className="flex justify-between text-xs">
-                              <span className="text-neutral-500">Tier</span>
-                              <span className="text-white font-bold uppercase tracking-widest text-[10px]">Explorer</span>
+                      <div className="flex flex-col items-center justify-center pt-8 text-center space-y-6">
+                        <div className="relative group">
+                          {user?.user_metadata?.avatar_url ? (
+                            <img
+                              src={user.user_metadata.avatar_url}
+                              alt="Avatar"
+                              className="w-24 h-24 rounded-full border-2 border-neutral-700 shadow-2xl object-cover"
+                              referrerPolicy="no-referrer"
+                            />
+                          ) : (
+                            <div className="w-24 h-24 rounded-full bg-neutral-800 flex items-center justify-center border-2 border-neutral-700 shadow-xl">
+                              <User className="w-10 h-10 text-neutral-500" />
                             </div>
-                            <div className="flex justify-between text-xs">
-                              <span className="text-neutral-500">Daily Tokens Used</span>
-                              <span className="text-white font-medium">0 / 40,000</span>
+                          )}
+                        </div>
+
+                        <div className="space-y-1">
+                          <h4 className="text-white font-bold text-xl tracking-tight">
+                            {user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "Guest"}
+                          </h4>
+                          <p className="text-neutral-500 text-sm font-medium">{user?.email}</p>
+                        </div>
+
+                        <div className="pt-4 w-full max-w-[340px]">
+                          <div className="bg-neutral-950/60 border border-neutral-800/50 rounded-2xl p-5 flex flex-col gap-4">
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-neutral-500 font-medium">Subscription</span>
+                              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/5 rounded-full border border-white/10">
+                                <Sparkles className="w-3 h-3 text-white" />
+                                <span className="text-white font-bold uppercase tracking-wider text-[10px]">Explorer</span>
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-neutral-500 font-medium">Status</span>
+                              <span className="text-green-500 font-semibold text-xs flex items-center gap-1.5">
+                                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                Active
+                              </span>
                             </div>
                           </div>
                         </div>
