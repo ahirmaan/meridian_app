@@ -224,7 +224,7 @@ export async function createApp() {
                 messages,
                 stream: true,
                 include_usage: true,
-                max_tokens: 800
+                max_tokens: 16384
             };
 
             console.log(`[Optimizer] Sending prompt to ${model}. Full Messages:`, JSON.stringify(messages, null, 2));
