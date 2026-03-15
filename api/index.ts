@@ -4,8 +4,22 @@ import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
 
 // --- HELPERS ---
-function estimateTokens(text: string): number {
-    return Math.ceil(text.length / 4);
+function estimateTokens(content: any): number {
+    if (typeof content === 'string') {
+        return Math.ceil(content.length / 4);
+    }
+    if (Array.isArray(content)) {
+        return content.reduce((acc, part) => {
+            if (part?.type === 'text' && part.text) {
+                return acc + Math.ceil(part.text.length / 4);
+            }
+            if (part?.type === 'image_url') {
+                return acc + 800; // Consistent rough estimate for an image
+            }
+            return acc;
+        }, 0);
+    }
+    return 0;
 }
 
 function getPromptHash(prompt: string, context: any[]): string {
@@ -39,7 +53,8 @@ async function summarizeHistory(messages: any[], apiKey: string): Promise<string
     }
 }
 
-function getOptimalModel(prompt: string, requestedModel: string): string {
+function getOptimalModel(prompt: any, requestedModel: string): string {
+    if (typeof prompt !== 'string') return requestedModel;
     const lower = prompt.toLowerCase();
     const isSimple = lower.length < 50 && (
         lower.includes("hello") ||
