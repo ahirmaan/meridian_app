@@ -25,6 +25,7 @@ import {
   Check,
   Pin,
   PinOff,
+  FolderGit2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -177,7 +178,7 @@ export function MeridianSidebar({
                   <div className="mb-4">
                     <div className="flex items-center justify-between px-2 pb-1">
                       <p className="text-[11px] text-neutral-400 tracking-wider uppercase flex items-center gap-1.5 font-bold opacity-80">
-                        <Lock className="w-2.5 h-2.5" /> Locked Chats
+                        Locked Chats
                       </p>
                       <button
                         onClick={() => setViewingLockedFolder(false)}
@@ -204,7 +205,7 @@ export function MeridianSidebar({
                       ))
                     ) : (
                       <div className="flex flex-col items-center justify-center py-6 opacity-60">
-                        <span className="text-sm text-neutral-400">🔒 No Files in Locked Folder</span>
+                        <span className="text-sm text-neutral-400">No Files in Locked Folder</span>
                       </div>
                     )}
                   </div>
@@ -493,7 +494,8 @@ function ChatItem({
             "flex-1 text-sm truncate flex items-center gap-2",
             isActive ? "text-neutral-100 font-medium ml-1" : "text-neutral-400"
           )}>
-            {chat.title}
+            {chat.type === "project" && <FolderGit2 className="w-3.5 h-3.5 text-neutral-400 opacity-70 flex-shrink-0" />}
+            <span className="truncate">{chat.title}</span>
             {chat.is_pinned && <Pin className="w-2.5 h-2.5 text-amber-500 fill-amber-500/20" />}
           </span>
         )}
