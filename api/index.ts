@@ -149,15 +149,12 @@ export async function createApp() {
             ];
             if (!VALID_MODELS.includes(model)) {
                 console.log(`[Validation] Invalid model ${model} requested. Falling back.`);
-                // If has images, fallback to Stepfun (Vision), else Nemotron
-                model = hasImages ? "stepfun/step-3.5-flash:free" : "nvidia/nemotron-3-nano-30b-a3b:free";
+                // Default fallback to Nemotron
+                model = "nvidia/nemotron-3-nano-30b-a3b:free";
             }
 
-            // If images are present but a non-vision model is selected (like Nemotron), force vision-capable model
-            if (hasImages && model.includes("nemotron")) {
-                console.log("[Validation] Images detected but text-only model requested. Forcing Stepfun Vision.");
-                model = "stepfun/step-3.5-flash:free";
-            }
+            // No vision fallback anymore as Llama is removed.
+            // UI handles disabling uploads for these models.
             // ------------------------
 
             // --- OPTIMIZATION LAYER ---
@@ -184,9 +181,12 @@ export async function createApp() {
                     ...remaining
                 ];
             } else {
-                // Ensure concise instruction is always present if not summarizing
+                // Ensure identity & concise instruction is always present if not summarizing
                 if (messages[0]?.role !== 'system') {
-                    messages.unshift({ role: "system", content: "Respond as a helpful AI assistant." });
+                    messages.unshift({
+                        role: "system",
+                        content: "You are Meridian AI, a helpful and powerful assistant developed by the Meridian Team. Do not identify as any other model or lab (like Tongyi Lab)."
+                    });
                 }
             }
 

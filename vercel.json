@@ -1,7 +1,19 @@
 {
     "rewrites": [
         {
-            "source": "/api/(.*)",
+            "source": "/api/chat",
+            "destination": "/api/index.ts"
+        },
+        {
+            "source": "/api/usage",
+            "destination": "/api/index.ts"
+        },
+        {
+            "source": "/api/health",
+            "destination": "/api/index.ts"
+        },
+        {
+            "source": "/api/test",
             "destination": "/api/index.ts"
         },
         {

@@ -3,6 +3,7 @@ export type ModelConfig = {
   label: string;       // Display name
   provider: string;    // For grouping
   cheap?: boolean;     // For testing filter
+  vision?: boolean;    // Supports images/files
 };
 
 export const AVAILABLE_MODELS: ModelConfig[] = [
@@ -11,11 +12,13 @@ export const AVAILABLE_MODELS: ModelConfig[] = [
     label: "Nemotron",
     provider: "NVIDIA",
     cheap: true,
+    vision: false,
   },
   {
     id: "stepfun/step-3.5-flash:free",
     label: "Stepfun",
     provider: "Stepfun",
     cheap: true,
+    vision: false,
   },
 ];

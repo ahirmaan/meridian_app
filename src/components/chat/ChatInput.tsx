@@ -98,6 +98,10 @@ export const ChatInput = forwardRef(({
     ? [...AVAILABLE_MODELS, { id: "everyone", label: "Everyone", provider: "System" }]
     : AVAILABLE_MODELS;
 
+  const currentModelId = pinnedModel ?? defaultModel;
+  const currentModelConfig = AVAILABLE_MODELS.find(m => m.id === currentModelId);
+  const supportsVision = currentModelConfig?.vision ?? false;
+
   const filteredModels = availableModels.filter(m =>
     m.label.toLowerCase().includes(mentionSearch.toLowerCase()) ||
     m.provider.toLowerCase().includes(mentionSearch.toLowerCase())
@@ -259,7 +263,7 @@ export const ChatInput = forwardRef(({
       setShowFileMentions(false);
       setMentionSearch(lastWord.slice(1));
       setSelectedIndex(0);
-    } else if (lastWord.startsWith("#")) {
+    } else if (lastWord.startsWith("#") && supportsVision) {
       setShowFileMentions(true);
       setShowMentions(false);
       setFileMentionSearch(lastWord.slice(1));
@@ -419,14 +423,20 @@ export const ChatInput = forwardRef(({
             )}
             style={{ overflow: "hidden" }}
           />
-          <Tooltip content="Attach file" delay={300} className={cn(
+          <Tooltip content={supportsVision ? "Attach file" : "Model does not support files"} delay={300} className={cn(
             "absolute",
             isNewChat ? "left-3 bottom-3" : "left-3 top-1/2 -translate-y-1/2"
           )}>
             <button
               type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="p-2 -ml-1 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+              onClick={() => supportsVision && fileInputRef.current?.click()}
+              disabled={!supportsVision}
+              className={cn(
+                "p-2 -ml-1 rounded-full transition-colors",
+                supportsVision
+                  ? "text-neutral-400 hover:text-white hover:bg-neutral-800"
+                  : "text-neutral-600 cursor-not-allowed opacity-50"
+              )}
             >
               <Paperclip className="w-4 h-4" />
             </button>
