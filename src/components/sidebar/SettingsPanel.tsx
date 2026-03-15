@@ -51,25 +51,9 @@ export function SettingsPanel({
 
   const tabs: { id: SettingsTab; icon: React.ReactNode; label: string }[] = [
     { id: 'General', icon: <Settings className="w-4 h-4" />, label: 'General' },
-    { id: 'Personalization', icon: <Palette className="w-4 h-4" />, label: 'Personalization' },
     { id: 'Knowledge', icon: <Brain className="w-4 h-4" />, label: 'Knowledge' },
     { id: 'Security', icon: <ShieldCheck className="w-4 h-4" />, label: 'Security' },
     { id: 'Account', icon: <User className="w-4 h-4" />, label: 'Account' },
-  ];
-
-  const ACCENT_COLORS = [
-    { name: 'Cyber Blue', color: '#3b82f6' },
-    { name: 'Aura Purple', color: '#a855f7' },
-    { name: 'Rose Quartz', color: '#f43f5e' },
-    { name: 'Mint', color: '#10b981' },
-    { name: 'Gold', color: '#f59e0b' },
-  ];
-
-  const PARTICLE_COLORS = [
-    { name: 'White', color: '#ffffff' },
-    { name: 'Accent', color: 'accent' },
-    { name: 'Cyan', color: '#06b6d4' },
-    { name: 'Pink', color: '#ec4899' },
   ];
 
   return (
@@ -164,109 +148,6 @@ export function SettingsPanel({
                       </div>
                     )}
 
-                    {/* PERSONALIZATION TAB */}
-                    {activeTab === 'Personalization' && (
-                      <div className="space-y-10 pb-4">
-                        <section className="space-y-4">
-                          <label className="text-sm font-semibold text-neutral-300 block">Accent Color</label>
-                          <div className="flex gap-3">
-                            {ACCENT_COLORS.map((c) => (
-                              <button
-                                key={c.name}
-                                onClick={() => updateDraft({ accentColor: c.color })}
-                                className={`w-8 h-8 rounded-full border-2 transition-all ${draftSettings.accentColor === c.color ? 'border-white scale-110' : 'border-transparent opacity-60 hover:opacity-100 hover:scale-105'
-                                  }`}
-                                style={{ backgroundColor: c.color }}
-                                title={c.name}
-                              />
-                            ))}
-                          </div>
-                        </section>
-
-                        <section className="space-y-4 pt-4 border-t border-neutral-800/50">
-                          <div className="flex justify-between items-center">
-                            <div className="flex flex-col gap-0.5">
-                              <span className="text-sm font-semibold text-neutral-300">Glassmorphism</span>
-                              <span className="text-[11px] text-neutral-500">Enable frosted glass effects across the UI.</span>
-                            </div>
-                            <button
-                              onClick={() => updateDraft({ glassmorphismEnabled: !draftSettings.glassmorphismEnabled })}
-                              className={`w-10 h-5 rounded-full transition-colors relative flex items-center ${draftSettings.glassmorphismEnabled ? 'bg-white' : 'bg-neutral-800'}`}
-                            >
-                              <div className={`w-3.5 h-3.5 rounded-full transition-transform ${draftSettings.glassmorphismEnabled ? 'translate-x-5.5 bg-black' : 'translate-x-1 bg-neutral-500'}`} />
-                            </button>
-                          </div>
-                        </section>
-
-                        <section className="space-y-6 pt-4 border-t border-neutral-800/50">
-                          <div className="flex items-center gap-2">
-                            <Sparkles className="w-4 h-4 text-neutral-400" />
-                            <span className="text-sm font-semibold text-neutral-300">Atmosphere Controls</span>
-                          </div>
-
-                          <div className="space-y-6 bg-neutral-950/40 p-5 rounded-2xl border border-neutral-800/50">
-                            {/* Color */}
-                            <div className="space-y-3">
-                              <label className="text-[11px] uppercase tracking-wider text-neutral-500 font-bold">Particle Color</label>
-                              <div className="flex gap-2">
-                                {PARTICLE_COLORS.map((c) => (
-                                  <button
-                                    key={c.name}
-                                    onClick={() => updateDraft({ particleColor: c.color })}
-                                    className={`w-6 h-6 rounded-full border border-white/20 transition-all ${draftSettings.particleColor === c.color ? 'scale-125 ring-2 ring-white/50 ring-offset-2 ring-offset-neutral-900 shadow-xl' : 'opacity-40 hover:opacity-100'
-                                      }`}
-                                    style={{ backgroundColor: c.color === 'accent' ? draftSettings.accentColor : c.color }}
-                                    title={c.name}
-                                  />
-                                ))}
-                              </div>
-                            </div>
-
-                            {/* Density */}
-                            <div className="space-y-3">
-                              <div className="flex justify-between text-[11px] uppercase tracking-wider text-neutral-500 font-bold">
-                                <span>Density</span>
-                                <span>{(draftSettings.particleDensity * 100).toFixed(0)}%</span>
-                              </div>
-                              <input
-                                type="range" min="0.1" max="5.0" step="0.1"
-                                value={draftSettings.particleDensity}
-                                onChange={(e) => updateDraft({ particleDensity: parseFloat(e.target.value) })}
-                                className="w-full accent-white h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer"
-                              />
-                            </div>
-
-                            {/* Speed */}
-                            <div className="space-y-3">
-                              <div className="flex justify-between text-[11px] uppercase tracking-wider text-neutral-500 font-bold">
-                                <span>Speed</span>
-                                <span>{draftSettings.particleSpeed.toFixed(1)}x</span>
-                              </div>
-                              <input
-                                type="range" min="0.1" max="3.0" step="0.1"
-                                value={draftSettings.particleSpeed}
-                                onChange={(e) => updateDraft({ particleSpeed: parseFloat(e.target.value) })}
-                                className="w-full accent-white h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer"
-                              />
-                            </div>
-
-                            {/* Size */}
-                            <div className="space-y-3">
-                              <div className="flex justify-between text-[11px] uppercase tracking-wider text-neutral-500 font-bold">
-                                <span>Particle Size</span>
-                                <span>{draftSettings.particleSize.toFixed(1)}x</span>
-                              </div>
-                              <input
-                                type="range" min="0.1" max="5.0" step="0.1"
-                                value={draftSettings.particleSize}
-                                onChange={(e) => updateDraft({ particleSize: parseFloat(e.target.value) })}
-                                className="w-full accent-white h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer"
-                              />
-                            </div>
-                          </div>
-                        </section>
-                      </div>
-                    )}
 
                     {/* KNOWLEDGE TAB */}
                     {activeTab === 'Knowledge' && (

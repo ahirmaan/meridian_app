@@ -14,9 +14,9 @@ interface ThoughtParticlesProps {
 export function ThoughtParticles({
     density = 1.0,
     sensitivity = 20,
-    color = "#ffffff",
-    speedMultiplier = 1.0,
-    sizeMultiplier = 1.0
+    color = "#ffffff", // Fixed to white
+    speedMultiplier = 1.0, // Fixed
+    sizeMultiplier = 1.0 // Fixed
 }: ThoughtParticlesProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -109,25 +109,15 @@ export function ThoughtParticles({
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
 
-                // Handle 'accent' keyword or hex
-                const particleColor = color === 'accent' ? getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ffffff' : color;
-
-                // Convert hex to rgba for opacity
-                let fillStyle = particleColor;
-                if (particleColor.startsWith('#')) {
-                    const r = parseInt(particleColor.slice(1, 3), 16);
-                    const g = parseInt(particleColor.slice(3, 5), 16);
-                    const b = parseInt(particleColor.slice(5, 7), 16);
-                    fillStyle = `rgba(${r}, ${g}, ${b}, ${this.opacity})`;
-                }
+                const particleColor = "#ffffff";
+                const fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
 
                 ctx.fillStyle = fillStyle;
                 ctx.fill();
 
-                // Add a very subtle glow to some particles
-                if (this.size > 1.2 * sizeMultiplier) {
+                if (this.size > 1.2) {
                     ctx.shadowBlur = 10;
-                    ctx.shadowColor = particleColor === "#ffffff" ? "rgba(255, 255, 255, 0.2)" : `${particleColor}33`;
+                    ctx.shadowColor = "rgba(255, 255, 255, 0.2)";
                 } else {
                     ctx.shadowBlur = 0;
                 }
@@ -136,11 +126,10 @@ export function ThoughtParticles({
 
         const init = () => {
             particles = [];
-            // Made density significantly more noticeable
             const baseDensity = 8000;
             const baseParticleCount = Math.floor((canvas.width * canvas.height) / baseDensity);
-            const particleCount = Math.floor(baseParticleCount * density);
-            for (let i = 0; i < Math.min(particleCount, 500); i++) {
+            const particleCount = baseParticleCount; // Solid/Fixed density
+            for (let i = 0; i < Math.min(particleCount, 400); i++) {
                 particles.push(new Particle());
             }
         };
