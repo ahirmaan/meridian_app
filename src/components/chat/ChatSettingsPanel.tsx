@@ -9,6 +9,7 @@ interface ChatSettingsPanelProps {
         id: string;
         is_pinned?: boolean;
         show_thought_trace?: boolean;
+        type?: "chat" | "project";
     };
     onUpdate: (id: string, updates: any) => void;
     onClearHistory: () => void;
@@ -87,7 +88,9 @@ export function ChatSettingsPanel({
                                     {isPinned ? <Pin className="w-5 h-5" /> : <PinOff className="w-5 h-5" />}
                                 </div>
                                 <div className="text-left">
-                                    <p className="text-sm font-semibold text-white">Pin Chat</p>
+                                    <p className="text-sm font-semibold text-white">
+                                        {chat.type === "project" ? "Pin Project" : "Pin Chat"}
+                                    </p>
                                     <p className="text-[11px] text-neutral-400 opacity-80">Keep at the top of sidebar</p>
                                 </div>
                             </div>

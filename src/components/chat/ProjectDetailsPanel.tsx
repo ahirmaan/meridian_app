@@ -113,14 +113,7 @@ export function ProjectDetailsPanel({
                     <div className="w-full h-px bg-neutral-800/50" />
 
                     {/* Metadata Grid */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="flex flex-col gap-2">
-                            <span className="text-[10px] text-neutral-400 uppercase tracking-widest font-bold opacity-70">Visibility</span>
-                            <div className="flex items-center gap-2 text-sm text-neutral-200 bg-neutral-900/50 px-3 py-2.5 rounded-lg border border-neutral-800/50 font-medium">
-                                {project.visibility === "team" ? "Team" : "Private"}
-                            </div>
-                        </div>
-
+                    <div className="flex flex-col gap-4">
                         <div className="flex flex-col gap-2">
                             <span className="text-[10px] text-neutral-400 uppercase tracking-widest font-bold opacity-70">Base Model</span>
                             <div className="flex items-center gap-2 text-sm text-neutral-200 bg-neutral-900/50 px-3 py-2.5 rounded-lg border border-neutral-800/50 truncate font-medium">

@@ -3,7 +3,12 @@
 import React, { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 
-export function ThoughtParticles() {
+interface ThoughtParticlesProps {
+    density?: number;
+    sensitivity?: number;
+}
+
+export function ThoughtParticles({ density = 1.0, sensitivity = 20 }: ThoughtParticlesProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -67,7 +72,7 @@ export function ThoughtParticles() {
                 let distance = Math.sqrt(dx * dx + dy * dy);
                 let forceDirectionX = dx / distance;
                 let forceDirectionY = dy / distance;
-                const maxDistance = 100;
+                const maxDistance = sensitivity * 5; // Scale maxDistance with sensitivity
                 let force = (maxDistance - distance) / maxDistance;
 
                 if (distance < maxDistance) {
@@ -109,8 +114,9 @@ export function ThoughtParticles() {
 
         const init = () => {
             particles = [];
-            const particleCount = Math.floor((canvas.width * canvas.height) / 15000);
-            for (let i = 0; i < Math.min(particleCount, 100); i++) {
+            const baseParticleCount = Math.floor((canvas.width * canvas.height) / 15000);
+            const particleCount = Math.floor(baseParticleCount * density);
+            for (let i = 0; i < Math.min(particleCount, 250); i++) {
                 particles.push(new Particle());
             }
         };

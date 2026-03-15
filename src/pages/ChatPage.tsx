@@ -10,6 +10,8 @@ import { ChatSettingsPanel } from "../components/chat/ChatSettingsPanel";
 import { ProjectDetailsPanel } from "../components/chat/ProjectDetailsPanel";
 import { Popover } from "../components/ui/Popover";
 import { Tooltip } from "../components/ui/Tooltip";
+import { useSettings } from "../lib/settingsStore";
+import { useAutoLock } from "../hooks/useAutoLock";
 import { ThoughtParticles } from "../components/ui/ThoughtParticles";
 import { ArtifactPreview } from "../components/chat/ArtifactPreview";
 import { MeridianSidebar } from "../components/sidebar/MeridianSidebar";
@@ -50,10 +52,19 @@ const GREETINGS = [
 ];
 
 export default function ChatPage() {
+  const { settings } = useSettings();
+
   const [regularChats, setRegularChats] = useState<Chat[]>([]);
   const [lockedChats, setLockedChats] = useState<Chat[]>([]);
   const [isLockedFolderUnlocked, setIsLockedFolderUnlocked] = useState(false);
   const [viewingLockedFolder, setViewingLockedFolder] = useState(false);
+
+  useAutoLock(settings.autoLockTimer, () => {
+    setIsLockedFolderUnlocked(false);
+    setViewingLockedFolder(false);
+    console.log("[ChatPage] Auto-locked due to inactivity");
+  });
+
   const [passcodeExists, setPasscodeExists] = useState(false);
   const [storedPasscode, setStoredPasscode] = useState<string | null>(null);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -421,6 +432,14 @@ export default function ChatPage() {
 
       const baseApiMessages: any[] = [];
 
+      // Global Persona injection (Highest priority)
+      if (settings.globalPersona) {
+        baseApiMessages.push({
+          role: "system",
+          content: `CRITICAL INSTRUCTIONS (Global Persona): ${settings.globalPersona}\n\nYou MUST follow these rules for every response.`
+        });
+      }
+
       // Inject Project Context if applicable
       const activeChat = [...regularChats, ...lockedChats].find(c => c.id === currentChatId);
       if (activeChat?.type === "project" && activeChat.description) {
@@ -640,7 +659,7 @@ export default function ChatPage() {
             setLockedChats(updater);
           }}
           onClearHistory={async () => {
-            if (!activeChatId) return;
+            if (!userId || !activeChatId) return;
             setMessages([]);
             setChatSettingsOpen(false);
             await deleteMessagesForChat(activeChatId);
@@ -733,7 +752,11 @@ export default function ChatPage() {
                   transition={{ duration: 0.3 }}
                   className="flex-1 flex flex-col items-center justify-center px-4 relative"
                 >
-                  <ThoughtParticles />
+                  {/* Particles Background */}
+                  <ThoughtParticles
+                    density={settings.particleDensity}
+                    sensitivity={settings.motionSensitivity}
+                  />
                   <div className="w-full max-w-[800px] flex flex-col items-center relative z-10">
                     {authError && (
                       <motion.div

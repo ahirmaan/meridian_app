@@ -5,6 +5,9 @@ import { X, Lock, Shield, Check, ChevronDown } from "lucide-react";
 import React, { useState, useRef, useEffect } from "react";
 import { AVAILABLE_MODELS } from "../../lib/models";
 import { getModelLogoSrc } from "../../lib/modelLogos";
+import { useSettings, StreamingSpeed, AutoLockTimer } from "../../lib/settingsStore";
+import { Brain, Sparkles, Monitor, Info, Trash2, Zap, Clock } from "lucide-react";
+import { Tooltip } from "../ui/Tooltip";
 
 interface SettingsPanelProps {
   onClose: () => void;
@@ -19,10 +22,18 @@ export function SettingsPanel({
   setDefaultModel,
   onPasscodeChange,
 }: SettingsPanelProps) {
+  const { settings, updateSettings } = useSettings();
   const [changePasscodeOpen, setChangePasscodeOpen] = useState(false);
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const passcodeExists = !!localStorage.getItem("meridian_passcode");
+
+  const handleClearCache = () => {
+    if (confirm("Are you sure? This will wipe all local chat history and settings.")) {
+      localStorage.clear();
+      window.location.reload();
+    }
+  };
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -138,29 +149,156 @@ export function SettingsPanel({
           </div>
         </div>
 
-        {/* PRIVACY */}
-        <div>
-          <h3 className="text-xs uppercase tracking-widest text-neutral-400 mb-4 font-bold opacity-70">
-            Privacy
+        {/* VISUAL ATMOSPHERE */}
+        <div className="mb-12">
+          <h3 className="text-xs uppercase tracking-widest text-neutral-400 mb-6 font-bold opacity-70 flex items-center gap-2">
+            <Sparkles className="w-3.5 h-3.5" /> Atmosphere
           </h3>
 
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-neutral-300 font-medium">
-                Locked Folder
-              </span>
-              <span className="text-xs text-neutral-400 opacity-80">
-                {passcodeExists ? "Configured" : "Not set"}
-              </span>
+          <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-neutral-300 font-medium">Particle Density</span>
+                <span className="text-[11px] text-neutral-500 font-mono tracking-tighter">{(settings.particleDensity * 100).toFixed(0)}%</span>
+              </div>
+              <input
+                type="range" min="0.1" max="2.0" step="0.1"
+                value={settings.particleDensity}
+                onChange={(e) => updateSettings({ particleDensity: parseFloat(e.target.value) })}
+                className="w-full accent-white h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer"
+              />
             </div>
 
-            <button
-              onClick={() => setChangePasscodeOpen(true)}
-              className="w-full flex items-center gap-2 px-4 py-3 rounded-xl border border-neutral-800 text-sm text-neutral-300 hover:bg-neutral-900 transition-colors"
-            >
-              <Lock className="w-4 h-4" />
-              {passcodeExists ? "Change Passcode" : "Set Passcode"}
-            </button>
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-neutral-300 font-medium">Motion Sensitivity</span>
+                <span className="text-[11px] text-neutral-500 font-mono tracking-tighter">{settings.motionSensitivity}px</span>
+              </div>
+              <input
+                type="range" min="1" max="50" step="1"
+                value={settings.motionSensitivity}
+                onChange={(e) => updateSettings({ motionSensitivity: parseInt(e.target.value) })}
+                className="w-full accent-white h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer"
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm text-neutral-300 font-medium">Glassmorphism</span>
+                <span className="text-[10px] text-neutral-500">Enable frosted glass effects</span>
+              </div>
+              <button
+                onClick={() => updateSettings({ glassmorphismEnabled: !settings.glassmorphismEnabled })}
+                className={`w-10 h-5 rounded-full transition-colors relative flex items-center ${settings.glassmorphismEnabled ? 'bg-white' : 'bg-neutral-800'}`}
+              >
+                <div className={`w-3.5 h-3.5 rounded-full transition-transform ${settings.glassmorphismEnabled ? 'translate-x-5.5 bg-black' : 'translate-x-1 bg-neutral-500'}`} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full h-px bg-neutral-800/50 mb-12" />
+
+        {/* GLOBAL KNOWLEDGE */}
+        <div className="mb-12">
+          <h3 className="text-xs uppercase tracking-widest text-neutral-400 mb-6 font-bold opacity-70 flex items-center gap-2">
+            <Brain className="w-3.5 h-3.5" /> Global Knowledge
+          </h3>
+
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-sm text-neutral-300 font-medium">Universal Persona</span>
+              <Tooltip content="Instructions that apply to every AI model in every chat.">
+                <Info className="w-3.5 h-3.5 text-neutral-600" />
+              </Tooltip>
+            </div>
+            <textarea
+              value={settings.globalPersona}
+              onChange={(e) => updateSettings({ globalPersona: e.target.value })}
+              placeholder="e.g. Always respond in Spanish, keep answers brief..."
+              className="w-full h-28 bg-neutral-900 border border-neutral-800 rounded-xl p-4 text-sm text-neutral-300 placeholder:text-neutral-700 focus:outline-none focus:ring-1 focus:ring-neutral-600 transition-all resize-none font-medium leading-relaxed"
+            />
+          </div>
+        </div>
+
+        <div className="w-full h-px bg-neutral-800/50 mb-12" />
+
+        {/* INTELLIGENCE & SPEED */}
+        <div className="mb-12">
+          <h3 className="text-xs uppercase tracking-widest text-neutral-400 mb-6 font-bold opacity-70 flex items-center gap-2">
+            <Zap className="w-3.5 h-3.5" /> Intelligence
+          </h3>
+
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-3">
+              <span className="text-sm text-neutral-300 font-medium">Streaming Speed</span>
+              <div className="grid grid-cols-3 gap-2 bg-neutral-900 border border-neutral-800 p-1 rounded-xl">
+                {(['Normal', 'Fast', 'Instant'] as StreamingSpeed[]).map((speed) => (
+                  <button
+                    key={speed}
+                    onClick={() => updateSettings({ streamingSpeed: speed })}
+                    className={`py-2 text-[11px] font-bold rounded-lg transition-all ${settings.streamingSpeed === speed ? 'bg-white text-black shadow-lg' : 'text-neutral-500 hover:text-neutral-300'}`}
+                  >
+                    {speed}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full h-px bg-neutral-800/50 mb-12" />
+
+        {/* PRIVACY */}
+        <div className="mb-12">
+          <h3 className="text-xs uppercase tracking-widest text-neutral-400 mb-6 font-bold opacity-70 flex items-center gap-2">
+            <Shield className="w-3.5 h-3.5" /> Privacy & Security
+          </h3>
+
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-neutral-300 font-medium">Auto-Lock Timer</span>
+                <select
+                  value={settings.autoLockTimer}
+                  onChange={(e) => updateSettings({ autoLockTimer: e.target.value as AutoLockTimer })}
+                  className="bg-neutral-900 border border-neutral-800 text-[11px] text-white rounded-lg px-2 py-1 outline-none"
+                >
+                  <option value="Off">Off</option>
+                  <option value="1m">1m</option>
+                  <option value="5m">5m</option>
+                  <option value="15m">15m</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-neutral-300 font-medium">
+                    Locked Folder
+                  </span>
+                  <span className="text-xs text-neutral-400 opacity-80">
+                    {passcodeExists ? "Configured" : "Not set"}
+                  </span>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setChangePasscodeOpen(true)}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-neutral-800 text-sm text-neutral-300 hover:bg-neutral-900 transition-colors"
+                  >
+                    <Lock className="w-4 h-4" />
+                    {passcodeExists ? "Change" : "Set"}
+                  </button>
+                  <button
+                    onClick={handleClearCache}
+                    className="flex items-center justify-center px-4 py-3 rounded-xl border border-red-500/20 text-red-500 hover:bg-red-500/10 transition-colors"
+                    title="Clear All Cache"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </motion.div>
